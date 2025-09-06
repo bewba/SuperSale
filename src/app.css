@@ -1,0 +1,89 @@
+@import 'tailwindcss';
+
+:root {
+	--color-unli-light: #cad2c5;
+	--color-unli-sage: #84a98c;
+	--color-unli-forest: #52796f;
+	--color-unli-dark: #354f52;
+	--color-unli-deep: #2f3e46;
+}
+
+/* Utility classes using CSS custom properties */
+.bg-unli-light {
+	background-color: var(--color-unli-light);
+}
+.bg-unli-sage {
+	background-color: var(--color-unli-sage);
+}
+.bg-unli-forest {
+	background-color: var(--color-unli-forest);
+}
+.bg-unli-dark {
+	background-color: var(--color-unli-dark);
+}
+.bg-unli-deep {
+	background-color: var(--color-unli-deep);
+}
+
+.text-unli-light {
+	color: var(--color-unli-light);
+}
+.text-unli-sage {
+	color: var(--color-unli-sage);
+}
+.text-unli-forest {
+	color: var(--color-unli-forest);
+}
+.text-unli-dark {
+	color: var(--color-unli-dark);
+}
+.text-unli-deep {
+	color: var(--color-unli-deep);
+}
+
+.border-unli-light {
+	border-color: var(--color-unli-light);
+}
+.border-unli-sage {
+	border-color: var(--color-unli-sage);
+}
+.border-unli-forest {
+	border-color: var(--color-unli-forest);
+}
+.border-unli-dark {
+	border-color: var(--color-unli-dark);
+}
+.border-unli-deep {
+	border-color: var(--color-unli-deep);
+}
+
+/* You can now use these colors in your components with:
+   - bg-unli-light, text-unli-sage, border-unli-forest, etc.
+   - Or use CSS custom properties: var(--color-unli-light) */
+@media (max-width: 768px) {
+	.text-5xl {
+		font-size: 2.5rem;
+	}
+	.text-4xl {
+		font-size: 2rem;
+	}
+	.text-3xl {
+		font-size: 1.75rem;
+	}
+	.grid-cols-3 {
+		grid-template-columns: 1fr;
+	}
+	.grid-cols-5 {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 640px) {
+	.grid-cols-2 {
+		grid-template-columns: 1fr;
+	}
+}
+
+html {
+  scroll-behavior: smooth;
+}
