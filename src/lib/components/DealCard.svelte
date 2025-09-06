@@ -173,14 +173,17 @@
 		<!-- Right -->
 		<div class="text-right">
 			<h2
-				class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white sm:text-xl md:text-2xl"
+				class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white 
+							sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
 			>
-				₱{deal.discount_price.toFixed(2)}<span class="ml-1 text-[10px] underline sm:text-xs"
-					>per pc.</span
-				>
+				₱{deal.discount_price.toFixed(2)}
+				<span class="text-[10px] underline sm:text-xs">per pc.</span>
 			</h2>
-			<p class="text-xs text-gray-300 line-through sm:text-sm">₱{deal.original_price.toFixed(2)}</p>
+			<p class="text-xs text-gray-300 line-through sm:text-sm">
+				₱{deal.original_price.toFixed(2)}
+			</p>
 		</div>
+
 	</div>
 </div>
 

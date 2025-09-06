@@ -131,7 +131,7 @@
 			class="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-scroll scroll-smooth"
 		>
 			{#each deals as deal}
-				<div class="w-[90%] shrink-0 snap-center lg:w-1/2 xl:w-1/3">
+				<div class="w-[90%] shrink-0 snap-center lg:w-1/2 xl:w-1/3 md:1/2">
 					<DealCard {deal} on:select={(e) => handleSelect(e.detail.deal)} />
 				</div>
 			{/each}
