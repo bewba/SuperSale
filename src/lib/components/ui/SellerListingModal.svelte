@@ -15,11 +15,12 @@
 
 	// form state
 	let productName = '';
-	let originalPrice: string = '';
-	let discountPrice: string = '';
+	let originalPrice: number = 0;
+	let discountPrice: number = 0;
 	let description = '';
 	let quantity: string = '';
 	let expiryDate: string = '';
+	let expiryTime: string = '';
 	let imageFiles: File[] = [];
 	let imagePreviews: string[] = [];
 	let category = '';
@@ -103,6 +104,8 @@
 			description,
 			quantity,
 			expiryDate,
+			// TODO: ADD TIME
+			expiryTime,
 			category,
 			contactInfo,
 			imageFiles,
@@ -121,11 +124,11 @@
 
 	$: if (deal) {
 		productName = deal.title;
-		originalPrice = String(deal.original_price);
-		discountPrice = String(deal.discount_price);
 		description = deal.reason;
 		quantity = String(deal.quantity);
 		expiryDate = deal.expires_at;
+		// TODO: ADD TIME
+		expiryTime = deal.expires_at_time;
 		category = deal.reason_category;
 		contactInfo = deal.contact_information;
 		discountPercent = deal.discount_percent;
@@ -141,6 +144,12 @@
 			imagePreviews = [];
 		}
 	}
+
+	$: discountPrice =
+		originalPrice > 0
+			? Number((originalPrice * (1 - discountPercent / 100)).toFixed(2))
+			: 0;
+
 </script>
 
 <!-- Backdrop -->
@@ -153,11 +162,11 @@
 -->
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 	<div class="relative mx-4 w-full max-w-3xl">
-		<div class="max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl">
+		<div class="max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl relative">
 			<!-- Close button -->
 			<button
 				on:click={close}
-				class="absolute top-3 right-3 cursor-pointer text-gray-500 hover:text-gray-800"
+				class="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-800"
 			>
 				✕
 			</button>
@@ -169,7 +178,6 @@
 				</h2>
 
 				<div>
-					<!-- svelte-ignore a11y_label_has_associated_control -->
 					<label class="block text-sm font-medium">Product Name</label>
 					<input
 						type="text"
@@ -179,9 +187,13 @@
 					/>
 				</div>
 
+				<div>
+					<label class="block text-sm font-medium">Description</label>
+					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
+				</div>
+
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<!-- svelte-ignore a11y_label_has_associated_control -->
 						<label class="block text-sm font-medium">Original Price</label>
 						<input
 							type="number"
@@ -191,46 +203,39 @@
 						/>
 					</div>
 					<div>
-						<!-- svelte-ignore a11y_label_has_associated_control -->
-						<label class="block text-sm font-medium">Discount Price</label>
+						<label class="block text-sm font-medium">Discount</label>
 						<input
-							type="number"
-							bind:value={discountPrice}
-							on:input={() => {
-								if (originalPrice && discountPrice) {
-									discountPercent = Math.round(
-										(1 - Number(discountPrice) / Number(originalPrice)) * 100
-									);
-								}
-							}}
-							required
-							class="w-full rounded-lg border p-2"
+							type="range"
+							min="0"
+							max="100"
+							step="1"
+							bind:value={discountPercent}
+							class="w-full accent-green-600"
 						/>
-						{#if discountPercent > 0}
-							<p class="mt-1 text-sm text-green-600">Discount: {discountPercent}%</p>
-						{/if}
+						<div class="mt-1 flex justify-between text-sm">
+							<span class="text-gray-600">{discountPercent}% off</span>
+							{#if discountPrice > 0}
+								<span class="font-semibold text-green-600">
+									Final Price: ₱{discountPrice}
+								</span>
+							{/if}
+						</div>
 					</div>
 				</div>
 
 				<div>
-					<!-- svelte-ignore a11y_label_has_associated_control -->
-					<label class="block text-sm font-medium">Description</label>
-					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
+					<label class="block text-sm font-medium">Quantity</label>
+					<input
+						type="number"
+						bind:value={quantity}
+						required
+						class="w-full rounded-lg border p-2"
+					/>
 				</div>
 
+				<!-- Expiry date + time side by side -->
 				<div class="grid grid-cols-2 gap-4">
 					<div>
-						<!-- svelte-ignore a11y_label_has_associated_control -->
-						<label class="block text-sm font-medium">Quantity</label>
-						<input
-							type="number"
-							bind:value={quantity}
-							required
-							class="w-full rounded-lg border p-2"
-						/>
-					</div>
-					<div>
-						<!-- svelte-ignore a11y_label_has_associated_control -->
 						<label class="block text-sm font-medium">Expiry Date</label>
 						<input
 							type="date"
@@ -239,18 +244,15 @@
 							class="w-full rounded-lg border p-2"
 						/>
 					</div>
-				</div>
-
-				<div>
-					<!-- svelte-ignore a11y_label_has_associated_control -->
-					<label class="block text-sm font-medium">Category</label>
-					<input type="text" bind:value={category} class="w-full rounded-lg border p-2" />
-				</div>
-
-				<div>
-					<!-- svelte-ignore a11y_label_has_associated_control -->
-					<label class="block text-sm font-medium">Contact Info</label>
-					<input type="text" bind:value={contactInfo} class="w-full rounded-lg border p-2" />
+					<div>
+						<label class="block text-sm font-medium">Expiry Time</label>
+						<input
+							type="time"
+							bind:value={expiryTime}
+							required
+							class="w-full rounded-lg border p-2"
+						/>
+					</div>
 				</div>
 
 				<div>
@@ -267,7 +269,6 @@
 						/>
 					</label>
 
-					<!-- Image displays -->
 					{#if imagePreviews.length > 0}
 						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
 							{#each imagePreviews as src, i}
@@ -275,7 +276,7 @@
 									<img {src} alt="Preview" class="h-32 w-full rounded-lg object-cover" />
 									<button
 										type="button"
-										class="absolute top-1 right-1 cursor-pointer rounded-full bg-black/60 px-2 py-1 text-xs text-white group-hover:block"
+										class="absolute top-1 right-1 hidden rounded-full bg-black/60 px-2 py-1 text-xs text-white group-hover:block"
 										on:click={() => removeImage(i)}
 									>
 										✕
