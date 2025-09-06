@@ -14,6 +14,7 @@ export type Deal = {
 	// NOTE: NEED TO ADD THESE COLUMNS TO THE DB
 	avg_rating: number;
 	image_list?: string[] | null;
+	expires_at_time?: string;
 };
 
 export type ProductResponse = {
