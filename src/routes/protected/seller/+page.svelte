@@ -10,6 +10,7 @@
 	import ActiveChats from '$lib/components/seller/ActiveChats.svelte';
 	import { toastSuccess, toastError, toastInfo } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
+	import supabase from '$lib/supabase/supabaseClient';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -171,64 +172,52 @@
 	}
 
 	async function sendAddListingToServer(deal: any) {
-		toastInfo(`Listing Deal!`, {
-			title: 'Your listing is being placed!',
-			duration: 3000,
-			position: 'top-right'
-		});
+		toastInfo(`Listing Deal!`, { title: 'Your listing is being placed!', duration: 3000 });
 
 		try {
-			const formData = new FormData();
+			// 1. Upload images directly to Supabase
+			const uploadedUrls: string[] = [];
+			if (deal.imageFiles?.length > 0) {
+				for (const file of deal.imageFiles) {
+					const fileName = `${crypto.randomUUID()}_${file.name}`;
+					const { data, error } = await supabase.storage
+						.from('productImages')
+						.upload(fileName, file);
 
-			// Append all fields
-			formData.append('productName', deal.productName);
-			formData.append('originalPrice', String(deal.originalPrice));
-			formData.append('discountPrice', String(deal.discountPrice));
-			formData.append('discountPercent', String(deal.discountPercent));
-			formData.append('description', deal.description);
-			formData.append('quantity', String(deal.quantity));
-			formData.append('expiryDate', deal.expiryDate);
-			formData.append('category', deal.category);
-			formData.append('contactInfo', deal.contactInfo);
-			formData.append('expiryTime', deal.expiryTime);
+					if (error) throw error;
 
-			if (deal.imageFiles && deal.imageFiles.length > 0) {
-				deal.imageFiles.forEach((file: File) => {
-					formData.append('imageFiles', file);
-				});
+					const { data: publicUrlData } = supabase.storage
+						.from('productImages')
+						.getPublicUrl(fileName);
+
+					uploadedUrls.push(publicUrlData.publicUrl);
+				}
 			}
 
+			// 2. Send only metadata + image URLs
 			const res = await fetch('/protected/seller/api/add-listing', {
 				method: 'POST',
-				body: formData
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					...deal,
+					image_list: uploadedUrls
+				})
 			});
 
-			if (!res.ok) {
-				throw new Error(`Failed to add listing: ${res.status}`);
-			}
+			if (!res.ok) throw new Error(`Failed to add listing: ${res.status}`);
 
 			const data = await res.json();
 			console.log('✅ Listing added:', data);
 
 			if (data.success) {
 				await loadDeals();
-
-				toastSuccess(`Your Listing has been placed!`, {
-					title: 'Listing Placed',
-					duration: 2000,
-					position: 'top-right'
-				});
+				toastSuccess(`Your Listing has been placed!`, { title: 'Listing Placed', duration: 2000 });
 			}
 
 			return data;
 		} catch (err) {
 			console.error('❌ Error adding listing:', err);
-
-			toastError(`Error Creating Listing!`, {
-				title: 'An error occured',
-				duration: 2000,
-				position: 'top-right'
-			});
+			toastError(`Error Creating Listing!`, { title: 'An error occured', duration: 2000 });
 		}
 	}
 
