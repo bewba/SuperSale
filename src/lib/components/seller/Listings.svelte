@@ -22,14 +22,15 @@
 </script>
 
 <section>
-  <div class="mb-6 flex gap-5 w-full items-center">
-    <h2 class="text-2xl font-bold">My Listings</h2>
+  <div class="mb-6 flex w-full items-center">
     <button
       on:click={addListing}
-      class="transform cursor-pointer rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 px-5 py-3 font-semibold
-        text-white shadow-md transition hover:scale-105 md:mt-0"
+      class="flex w-full justify-center transform text-4xl cursor-pointer rounded-xl 
+             bg-gradient-to-r from-green-600 to-emerald-500 px-5 py-3 font-semibold
+             text-white shadow-md transition-all duration-200 
+             hover:scale-105 hover:shadow-lg active:scale-95 active:shadow-inner"
     >
-      + New Listing
+      + Add a New Listing
     </button>
   </div>
 
