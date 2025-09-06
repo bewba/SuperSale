@@ -265,6 +265,7 @@
 							accept="image/*"
 							multiple
 							class="hidden"
+							required
 							on:change={handleImageUpload}
 						/>
 					</label>
