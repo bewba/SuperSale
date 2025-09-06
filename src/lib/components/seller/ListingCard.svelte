@@ -57,9 +57,9 @@
 			-{deal.discount_percent}%
 		</p>
 
-		<span class="rounded-lg bg-blue-600 px-2 py-1 text-xs font-semibold shadow-md">
-			{deal.reason_category?.toUpperCase() || ''}
-		</span>
+		<!-- <span class="rounded-lg bg-blue-600 px-2 py-1 text-xs font-semibold shadow-md">
+      {deal.reason_category?.toUpperCase() || ''}
+    </span> -->
 	</div>
 
 	<!-- Bottom Details -->
