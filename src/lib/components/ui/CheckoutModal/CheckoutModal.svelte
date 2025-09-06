@@ -67,7 +67,7 @@
 
 				<!-- Chat button -->
 				<button
-					class="mt-auto w-full cursor-pointer rounded bg-orange-600 py-2 font-semibold text-white hover:bg-orange-900"
+					class="mt-auto w-full cursor-pointer rounded bg-[#0060a9] py-2 font-semibold text-white hover:bg-[#004b82]"
 					on:click={handleChat}
 				>
 					Need to chat with the seller?
