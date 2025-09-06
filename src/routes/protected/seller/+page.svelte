@@ -437,14 +437,12 @@
 	<!-- Main Content -->
 	<main class="flex-1 space-y-8 p-4 md:p-8">
 		<!-- Dashboard Header -->
-		<div
-			class="flex cursor-pointer flex-col sm:flex-row sm:items-center sm:justify-between"
-			on:click={goto('/')}
-		>
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
 			<img
 				src="/logo.svg"
 				alt="Seller Dashboard"
-				class="h-18 object-contain drop-shadow-lg sm:h-14"
+				class="h-18 cursor-pointer object-contain drop-shadow-lg sm:h-14"
+				on:click={goto('/')}
 			/>
 		</div>
 
