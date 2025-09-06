@@ -1,3 +1,4 @@
+import { form } from '$app/server';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
@@ -15,8 +16,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const discount_percent = Number(formData.get('discountPercent')); //done
 		const reason = formData.get('description') as string; //done
 		const reason_category = formData.get('category') as string; //done
-		const expires_at = formData.get('expiryDate') as string; //done
+		const expiryDate = formData.get('expiryDate') as string; //done
 		const contact_information = formData.get('contactInfo') as string; //done
+		const expires_at_time = formData.get('expiryTime') as string;
 
 		const user = locals.user?.id;
 		if (!user) return json({ success: false, error: 'Not authenticated' }, { status: 401 });
@@ -30,18 +32,32 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			const { data: uploadData, error: uploadError } = await supabase.storage
 				.from('productImages')
 				.upload(fileName, file);
-		
+
 			if (uploadError) {
 				console.error('Supabase storage upload error:', uploadError);
 				return json({ success: false, error: uploadError.message }, { status: 500 });
 			}
-		
-			const { data: publicUrlData } = supabase.storage
-				.from('productImages')
-				.getPublicUrl(fileName);
-		
+
+			const { data: publicUrlData } = supabase.storage.from('productImages').getPublicUrl(fileName);
+
 			image_list.push(publicUrlData.publicUrl);
 		}
+
+		console.log('[PRODUCT INSERT] Payload:');
+		console.log('  title:', title);
+		console.log('  image_list:', image_list);
+		console.log('  quantity:', quantity);
+		console.log('  original_price:', original_price);
+		console.log('  reason_category:', reason_category);
+		console.log('  discount_price:', discount_price);
+		console.log('  discount_percent:', discount_percent);
+		console.log('  contact_information:', contact_information);
+		console.log('  reason:', reason);
+		console.log('  owner_id:', user);
+		console.log('  expires_at:', expiryDate);
+		console.log('  expires at:', expires_at_time);
+
+		const expires_at = `${expiryDate}T${expires_at_time}:00+08:00`;
 
 		// Insert deal into DB
 		const { data, error } = await supabase.from('products').insert([
