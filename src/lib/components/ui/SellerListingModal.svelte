@@ -260,6 +260,7 @@
 						class="inline-block cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-600"
 					>
 						Upload Images (max 4)
+						<span class="text-xl font-extrabold text-red-600">*</span>
 						<input
 							type="file"
 							accept="image/*"
