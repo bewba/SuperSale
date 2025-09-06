@@ -341,7 +341,6 @@
 	}
 	onMount(async () => {
 		loadDeals();
-		loadOrders();
 	});
 
 	async function loadChats() {
