@@ -442,9 +442,9 @@
 			on:click={goto('/')}
 		>
 			<img
-				src="/logo.png"
+				src="/logo.svg"
 				alt="Seller Dashboard"
-				class="h-12 object-contain drop-shadow-lg sm:h-14"
+				class="h-18 object-contain drop-shadow-lg sm:h-14"
 			/>
 		</div>
 
