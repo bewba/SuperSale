@@ -25,6 +25,7 @@
 	let imagePreviews: string[] = [];
 	let category = '';
 	let contactInfo = '';
+	let expires_at_time = '';
 
 	let discountPercent = 0;
 
@@ -113,6 +114,8 @@
 			removedImages // backend will remove these
 		};
 
+		console.log(payload);
+
 		if (deal) {
 			dispatch('updateListing', { ...payload, id: deal.id });
 		} else {
@@ -146,10 +149,7 @@
 	}
 
 	$: discountPrice =
-		originalPrice > 0
-			? Number((originalPrice * (1 - discountPercent / 100)).toFixed(2))
-			: 0;
-
+		originalPrice > 0 ? Number((originalPrice * (1 - discountPercent / 100)).toFixed(2)) : 0;
 </script>
 
 <!-- Backdrop -->
@@ -162,7 +162,7 @@
 -->
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
 	<div class="relative mx-4 w-full max-w-3xl">
-		<div class="max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl relative">
+		<div class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl">
 			<!-- Close button -->
 			<button
 				on:click={close}

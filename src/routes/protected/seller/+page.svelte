@@ -190,6 +190,7 @@
 			formData.append('expiryDate', deal.expiryDate);
 			formData.append('category', deal.category);
 			formData.append('contactInfo', deal.contactInfo);
+			formData.append('expiryTime', deal.expiryTime);
 
 			if (deal.imageFiles && deal.imageFiles.length > 0) {
 				deal.imageFiles.forEach((file: File) => {
