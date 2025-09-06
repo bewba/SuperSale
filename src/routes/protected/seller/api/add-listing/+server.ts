@@ -43,20 +43,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			image_list.push(publicUrlData.publicUrl);
 		}
 
-		console.log('[PRODUCT INSERT] Payload:');
-		console.log('  title:', title);
-		console.log('  image_list:', image_list);
-		console.log('  quantity:', quantity);
-		console.log('  original_price:', original_price);
-		console.log('  reason_category:', reason_category);
-		console.log('  discount_price:', discount_price);
-		console.log('  discount_percent:', discount_percent);
-		console.log('  contact_information:', contact_information);
-		console.log('  reason:', reason);
-		console.log('  owner_id:', user);
-		console.log('  expires_at:', expiryDate);
-		console.log('  expires at:', expires_at_time);
-
 		const expires_at = `${expiryDate}T${expires_at_time}:00+08:00`;
 
 		// Insert deal into DB
@@ -75,6 +61,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				owner_id: user
 			}
 		]);
+
+		if (data) {
+			console.log(data);
+		}
 
 		if (error) {
 			console.error('Supabase insert error:', error);
