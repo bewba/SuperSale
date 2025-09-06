@@ -3,7 +3,7 @@
 </script>
 
 <section 
-  class="relative flex items-center justify-center min-h-[100vh] sm:min-h-[90vh] md:min-h-[100vh] lg:h-[100vh] bg-cover bg-center"
+  class="relative flex items-center justify-center min-h-[100vh] sm:min-h-[90vh] md:min-h-[100vh] lg:h-[100vh] bg-cover bg-center pb-20"
   style="background-image: url('/salcedo.jpg');"
 >
   <!-- Overlay -->
