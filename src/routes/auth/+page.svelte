@@ -48,7 +48,7 @@
 			<!-- Logo -->
 			<div class="mb-4">
 				<img
-					src="/logo.png"
+					src="/logo.svg"
 					alt="UGLY.PH Logo"
 					class="logo-glow mx-auto mb-2 h-auto w-full max-w-[95%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]"
 				/>
@@ -57,7 +57,7 @@
 
 			<h2 class="mt-4 text-2xl font-bold text-gray-900">Welcome back!</h2>
 			<p class="mt-1 text-sm text-gray-600">
-				Sign in to your Ugly.ph account to list your surplus.
+				Sign in to your SuperSale.ph account to list your surplus.
 			</p>
 		</div>
 

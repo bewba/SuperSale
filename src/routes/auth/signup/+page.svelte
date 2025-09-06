@@ -45,7 +45,7 @@
 
 			<h2 class="mt-4 text-2xl font-bold text-gray-900">Create your account!</h2>
 			<p class="mt-1 text-sm text-gray-600">
-				Sign up to your Ugly.ph account to list your surplus.
+				Sign up to your SuperSale.ph account to list your surplus.
 			</p>
 
 		</div>
