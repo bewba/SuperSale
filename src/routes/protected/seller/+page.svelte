@@ -11,6 +11,7 @@
 	import { toastSuccess, toastError, toastInfo } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
 	import supabase from '$lib/supabase/supabaseClient';
+	import imageCompression from 'browser-image-compression';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -179,10 +180,16 @@
 			const uploadedUrls: string[] = [];
 			if (deal.imageFiles?.length > 0) {
 				for (const file of deal.imageFiles) {
+					const compressedFile = await imageCompression(file, {
+						maxSizeMB: 0.15, // target max size in MB
+						maxWidthOrHeight: 1024, // resize large images
+						useWebWorker: true
+					});
+
 					const fileName = `${crypto.randomUUID()}_${file.name}`;
 					const { data, error } = await supabase.storage
 						.from('productImages')
-						.upload(fileName, file);
+						.upload(fileName, compressedFile);
 
 					if (error) throw error;
 
