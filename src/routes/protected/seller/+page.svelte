@@ -125,6 +125,9 @@
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
 
+			formData.append('expiryDate', deal.expiryDate);
+			formData.append('expiryTime', deal.expiryTime);
+
 			if (deal.existingImages) {
 				formData.append('existingImages', JSON.stringify(deal.existingImages));
 			}

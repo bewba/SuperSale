@@ -19,7 +19,7 @@
 	let originalPrice: number = 0;
 	let discountPrice: number = 0;
 	let description = '';
-	let quantity: string = '';
+	let quantity: string = '1';
 	
 	
 	// I made this set to current PH date	
@@ -145,13 +145,17 @@
 		description = deal.reason;
 		quantity = String(deal.quantity);
 		expiryDate = deal.expires_at;
-		// TODO: ADD TIME
-		expiryTime = deal.expires_at_time;
 		category = deal.reason_category;
 		contactInfo = deal.contact_information;
 		discountPercent = deal.discount_percent;
 		existingImages = deal.image_list ? [...deal.image_list] : [];
 		imagePreviews = [...existingImages];
+
+		if (deal.expires_at) {
+			const d = new Date(deal.expires_at);
+			expiryDate = d.toISOString().split("T")[0];
+			expiryTime = d.toTimeString().slice(0, 5);
+  	}
 
 		// Load existing images into previews
 		if (deal.image_list && deal.image_list.length > 0) {
@@ -204,7 +208,6 @@
 							accept="image/*"
 							multiple
 							class="hidden"
-							required
 							on:change={handleImageUpload}
 						/>
 					</label>
