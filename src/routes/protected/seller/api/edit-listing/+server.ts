@@ -23,8 +23,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const expiryTime = formData.get('expiryTime') as string;
 		// combine
 		const expires_at = expiryDate && expiryTime
-			? new Date(`${expiryDate}T${expiryTime}`).toISOString()
-			: null;
+		? `${expiryDate}T${expiryTime}` : null;
 
 		const existingImages = JSON.parse(formData.get('existingImages') as string || '[]');
 		const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
