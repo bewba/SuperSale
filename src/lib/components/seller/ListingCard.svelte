@@ -84,13 +84,13 @@
 		<div class="mt-2 flex gap-3">
 			<button
 				on:click={() => dispatch('edit', { deal })}
-				class="flex-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-blue-600"
+				class="flex-1 cursor-pointer rounded-lg bg-blue-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-blue-600"
 			>
 				Edit
 			</button>
 			<button
 				on:click={() => dispatch('delete', { deal })}
-				class="flex-1 rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-red-600"
+				class="flex-1 cursor-pointer rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-red-600"
 			>
 				Delete
 			</button>
