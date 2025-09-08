@@ -180,26 +180,25 @@
 			>
 				✕
 			</button>
+			<h2 class="text-xl sm:text-2xl font-bold">
+				{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
+			</h2>
 
 			<!-- Modal form -->
 			<form on:submit|preventDefault={handleSubmit} class="space-y-5 sm:space-y-6">
-				<h2 class="text-xl sm:text-2xl font-bold">
-					{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
-				</h2>
-
 				<!-- Image Upload -->
-				<div class="space-y-3">
+				<div class="space-y-3 mt-2">
 					<label class="block text-sm sm:text-md font-semibold text-gray-700">
 						Upload Images (max 4)
-						<span class="text-xl font-extrabold text-red-600">*</span>
+						<span class="text-sm sm:text-md font-extrabold text-red-600">*</span>
 					</label>
 
 					<!-- Upload area -->
 					<label
-						class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 sm:p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
+						class="flex cursor-pointer min-h-[30vh] flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 sm:p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
 					>
 						<ImageUp class="text-gray-500 mb-2 h-6 w-6 sm:h-8 sm:w-8" />
-						<span class="text-xs sm:text-sm text-gray-600">Click to upload or drag & drop</span>
+						<span class="text-xs sm:text-sm text-gray-600">Click/tap to upload or drag & drop</span>
 						<input
 							type="file"
 							accept="image/*"
@@ -212,13 +211,13 @@
 
 					<!-- Previews -->
 					{#if imagePreviews.length > 0}
-						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+						<div class="flex gap-3 overflow-x-auto pb-2">
 							{#each imagePreviews as src, i}
-								<div class="group relative rounded-lg border border-gray-200 shadow-sm">
+								<div class="group relative aspect-square w-28 sm:w-32 flex-shrink-0 rounded-lg border border-gray-200 shadow-sm overflow-hidden">
 									<img
 										{src}
 										alt="Preview"
-										class="h-28 sm:h-32 w-full rounded-lg object-cover"
+										class="h-full w-full object-cover rounded-lg"
 									/>
 									<!-- Delete button -->
 									<button
@@ -251,7 +250,7 @@
 					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
 				</div> -->
 
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div>
 					<!-- <div>
 						<label class="block text-sm font-medium">Original Price</label>
 						<input
@@ -296,7 +295,7 @@
 				</div> -->
 
 				<!-- Expiry date + time side by side -->
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<div>
 					<!-- <div>
 						<label class="block text-sm font-medium">Expiry Date</label>
 						<input
@@ -307,7 +306,7 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-sm sm:text-md font-semibold mb-1">Deal expires in:</label>
+						<label class="block text-md font-semibold mb-1">Deal expires in:</label>
 						<input
 							type="time"
 							bind:value={expiryTime}
@@ -320,7 +319,7 @@
 				<div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
 					<button
 						type="submit"
-						class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-white w-full sm:w-auto"
+						class="cursor-pointer text-2xl rounded-lg bg-green-600 px-4 py-2 text-white w-full"
 					>
 						Save
 					</button>
