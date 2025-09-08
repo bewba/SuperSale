@@ -20,15 +20,29 @@
 	let discountPrice: number = 0;
 	let description = '';
 	let quantity: string = '';
-	let expiryDate: string = '';
-	let expiryTime: string = '';
+	
+	
+	// I made this set to current PH date	
+	const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
+	const phNow = new Date(now);
+
+	// Default expiry date is today/same date
+	let expiryDate: string = phNow.toISOString().split("T")[0];
+
+	// Default expiry time is 2 hours
+	let expiryTime: string = (() => {
+		const later = new Date(phNow);
+		later.setHours(later.getHours() + 2);
+		return later.toTimeString().slice(0, 5);
+	})();
+
 	let imageFiles: File[] = [];
 	let imagePreviews: string[] = [];
 	let category = '';
 	let contactInfo = '';
 	let expires_at_time = '';
 
-	let discountPercent = 0;
+	let discountPercent = 50;
 
 	function close() {
 		dispatch('closeModal');
@@ -154,43 +168,38 @@
 </script>
 
 <!-- Backdrop -->
-<!-- 
-	Removed the following for div:
-	role="button"
-	tabindex="0"
-	on:click={handleBackdropClick}
-	on:keydown={(e) => e.key === 'Escape'}
--->
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-	<div class="relative mx-4 w-full max-w-3xl">
-		<div class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-8 shadow-xl">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6">
+	<div class="relative w-full max-w-3xl">
+		<div
+			class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-4 sm:p-6 md:p-8 shadow-xl"
+		>
 			<!-- Close button -->
 			<button
 				on:click={close}
-				class="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-800"
+				class="absolute top-3 right-3 sm:top-4 sm:right-4 cursor-pointer text-gray-500 hover:text-gray-800"
 			>
 				✕
 			</button>
 
 			<!-- Modal form -->
-			<form on:submit|preventDefault={handleSubmit} class="space-y-6">
-				<h2 class="text-2xl font-bold">
+			<form on:submit|preventDefault={handleSubmit} class="space-y-5 sm:space-y-6">
+				<h2 class="text-xl sm:text-2xl font-bold">
 					{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
 				</h2>
 
 				<!-- Image Upload -->
 				<div class="space-y-3">
-					<label class="block text-md font-semibold text-gray-700">
+					<label class="block text-sm sm:text-md font-semibold text-gray-700">
 						Upload Images (max 4)
 						<span class="text-xl font-extrabold text-red-600">*</span>
 					</label>
 
 					<!-- Upload area -->
 					<label
-						class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
+						class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 sm:p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
 					>
-						<ImageUp class="text-gray-500 mb-2"/>
-						<span class="text-sm text-gray-600">Click to upload or drag & drop</span>
+						<ImageUp class="text-gray-500 mb-2 h-6 w-6 sm:h-8 sm:w-8" />
+						<span class="text-xs sm:text-sm text-gray-600">Click to upload or drag & drop</span>
 						<input
 							type="file"
 							accept="image/*"
@@ -203,20 +212,19 @@
 
 					<!-- Previews -->
 					{#if imagePreviews.length > 0}
-						<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+						<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
 							{#each imagePreviews as src, i}
 								<div class="group relative rounded-lg border border-gray-200 shadow-sm">
 									<img
 										{src}
 										alt="Preview"
-										class="h-32 w-full rounded-lg object-cover"
+										class="h-28 sm:h-32 w-full rounded-lg object-cover"
 									/>
 									<!-- Delete button -->
 									<button
 										type="button"
 										aria-label="delete-button"
-										class="cursor-pointer absolute top-1 right-1 transition
-													rounded-full bg-black p-1 text-white hover:bg-red-600 shadow"
+										class="absolute top-1 right-1 cursor-pointer rounded-full bg-black/60 p-1 text-white shadow hover:bg-red-600 transition"
 										on:click={() => removeImage(i)}
 									>
 										<X class="h-4 w-4" />
@@ -243,7 +251,7 @@
 					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
 				</div> -->
 
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<!-- <div>
 						<label class="block text-sm font-medium">Original Price</label>
 						<input
@@ -254,15 +262,18 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-sm font-medium">Discount</label>
-						<input
-							type="text"
-							min="50"
-							max="100"
-							step="1"
-							bind:value={discountPercent}
-							class="border rounded-lg w-full p-2"
-						/>
+						<label class="block text-md font-semibold">Discount</label>
+						<div class="relative">
+							<input
+								type="number"
+								min="50"
+								max="100"
+								step="1"
+								bind:value={discountPercent}
+								class="border rounded-lg w-full p-2 pr-8"
+							/>
+							<span class="absolute inset-y-0 right-3 flex items-center text-gray-500">%</span>
+						</div>
 						<!-- <div class="mt-1 flex justify-between text-sm">
 							<span class="text-gray-600">{discountPercent}% off</span>
 							{#if discountPrice > 0}
@@ -285,7 +296,7 @@
 				</div> -->
 
 				<!-- Expiry date + time side by side -->
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<!-- <div>
 						<label class="block text-sm font-medium">Expiry Date</label>
 						<input
@@ -296,7 +307,7 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-md font-semibold mb-1">Deal expires in:</label>
+						<label class="block text-sm sm:text-md font-semibold mb-1">Deal expires in:</label>
 						<input
 							type="time"
 							bind:value={expiryTime}
@@ -306,15 +317,11 @@
 					</div>
 				</div>	
 
-				<div class="flex justify-end gap-3">
+				<div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
 					<button
-						type="button"
-						on:click={close}
-						class="cursor-pointer rounded-lg bg-gray-200 px-4 py-2"
+						type="submit"
+						class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-white w-full sm:w-auto"
 					>
-						Cancel
-					</button>
-					<button type="submit" class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-white">
 						Save
 					</button>
 				</div>
