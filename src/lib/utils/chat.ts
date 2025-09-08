@@ -73,3 +73,22 @@ export async function sendMessage(
 		throw err;
 	}
 }
+
+export async function enterChatroom(chatroomId: string, userId: string) {
+	const pb = getPb();
+	try {
+		await pb.collection('chatroom_presence').create({
+			chatroom_id: chatroomId,
+			user_id: userId,
+			last_seen: new Date().toISOString()
+		});
+	} catch (e: any) {
+		// if already exists, just update last_seen
+		const record = await pb
+			.collection('chatroom_presence')
+			.getFirstListItem(`chatroom_id="${chatroomId}" && user_id="${userId}"`);
+		await pb.collection('chatroom_presence').update(record.id, {
+			last_seen: new Date().toISOString()
+		});
+	}
+}
