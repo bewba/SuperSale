@@ -3,6 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { Deal } from '$lib/types/types';
 	import { toastError } from '$lib/stores/toast';
+	import { X, ImageUp } from '@lucide/svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -177,90 +178,19 @@
 					{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
 				</h2>
 
-				<div>
-					<label class="block text-sm font-medium">Product Name</label>
-					<input
-						type="text"
-						bind:value={productName}
-						required
-						class="w-full rounded-lg border p-2"
-					/>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium">Description</label>
-					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
-				</div>
-
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-sm font-medium">Original Price</label>
-						<input
-							type="number"
-							bind:value={originalPrice}
-							required
-							class="w-full rounded-lg border p-2"
-						/>
-					</div>
-					<div>
-						<label class="block text-sm font-medium">Discount</label>
-						<input
-							type="range"
-							min="0"
-							max="100"
-							step="1"
-							bind:value={discountPercent}
-							class="w-full accent-green-600"
-						/>
-						<div class="mt-1 flex justify-between text-sm">
-							<span class="text-gray-600">{discountPercent}% off</span>
-							{#if discountPrice > 0}
-								<span class="font-semibold text-green-600">
-									Final Price: ₱{discountPrice}
-								</span>
-							{/if}
-						</div>
-					</div>
-				</div>
-
-				<div>
-					<label class="block text-sm font-medium">Quantity</label>
-					<input
-						type="number"
-						bind:value={quantity}
-						required
-						class="w-full rounded-lg border p-2"
-					/>
-				</div>
-
-				<!-- Expiry date + time side by side -->
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-sm font-medium">Expiry Date</label>
-						<input
-							type="date"
-							bind:value={expiryDate}
-							required
-							class="w-full rounded-lg border p-2"
-						/>
-					</div>
-					<div>
-						<label class="block text-sm font-medium">Expiry Time</label>
-						<input
-							type="time"
-							bind:value={expiryTime}
-							required
-							class="w-full rounded-lg border p-2"
-						/>
-					</div>
-				</div>
-
-				<div>
-					<label
-						class="inline-block cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-600"
-					>
+				<!-- Image Upload -->
+				<div class="space-y-3">
+					<label class="block text-md font-semibold text-gray-700">
 						Upload Images (max 4)
 						<span class="text-xl font-extrabold text-red-600">*</span>
+					</label>
+
+					<!-- Upload area -->
+					<label
+						class="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
+					>
+						<ImageUp class="text-gray-500 mb-2"/>
+						<span class="text-sm text-gray-600">Click to upload or drag & drop</span>
 						<input
 							type="file"
 							accept="image/*"
@@ -271,23 +201,110 @@
 						/>
 					</label>
 
+					<!-- Previews -->
 					{#if imagePreviews.length > 0}
-						<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+						<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 							{#each imagePreviews as src, i}
-								<div class="group relative">
-									<img {src} alt="Preview" class="h-32 w-full rounded-lg object-cover" />
+								<div class="group relative rounded-lg border border-gray-200 shadow-sm">
+									<img
+										{src}
+										alt="Preview"
+										class="h-32 w-full rounded-lg object-cover"
+									/>
+									<!-- Delete button -->
 									<button
 										type="button"
-										class="absolute top-1 right-1 hidden rounded-full bg-black/60 px-2 py-1 text-xs text-white group-hover:block"
+										aria-label="delete-button"
+										class="cursor-pointer absolute top-1 right-1 transition
+													rounded-full bg-black p-1 text-white hover:bg-red-600 shadow"
 										on:click={() => removeImage(i)}
 									>
-										✕
+										<X class="h-4 w-4" />
 									</button>
 								</div>
 							{/each}
 						</div>
 					{/if}
 				</div>
+
+
+				<!-- <div>
+					<label class="block text-sm font-medium">Product Name</label>
+					<input
+						type="text"
+						bind:value={productName}
+						required
+						class="w-full rounded-lg border p-2"
+					/>
+				</div> -->
+
+				<!-- <div>
+					<label class="block text-sm font-medium">Description</label>
+					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
+				</div> -->
+
+				<div class="grid grid-cols-2 gap-4">
+					<!-- <div>
+						<label class="block text-sm font-medium">Original Price</label>
+						<input
+							type="number"
+							bind:value={originalPrice}
+							required
+							class="w-full rounded-lg border p-2"
+						/>
+					</div> -->
+					<div>
+						<label class="block text-sm font-medium">Discount</label>
+						<input
+							type="text"
+							min="50"
+							max="100"
+							step="1"
+							bind:value={discountPercent}
+							class="border rounded-lg w-full p-2"
+						/>
+						<!-- <div class="mt-1 flex justify-between text-sm">
+							<span class="text-gray-600">{discountPercent}% off</span>
+							{#if discountPrice > 0}
+								<span class="font-semibold text-green-600">
+									Final Price: ₱{discountPrice}
+								</span>
+							{/if}
+						</div> -->
+					</div>
+				</div>
+
+				<!-- <div>
+					<label class="block text-sm font-medium">Quantity</label>
+					<input
+						type="number"
+						bind:value={quantity}
+						required
+						class="w-full rounded-lg border p-2"
+					/>
+				</div> -->
+
+				<!-- Expiry date + time side by side -->
+				<div class="grid grid-cols-2 gap-4">
+					<!-- <div>
+						<label class="block text-sm font-medium">Expiry Date</label>
+						<input
+							type="date"
+							bind:value={expiryDate}
+							required
+							class="w-full rounded-lg border p-2"
+						/>
+					</div> -->
+					<div>
+						<label class="block text-md font-semibold mb-1">Deal expires in:</label>
+						<input
+							type="time"
+							bind:value={expiryTime}
+							required
+							class="w-full rounded-lg border p-2"
+						/>
+					</div>
+				</div>	
 
 				<div class="flex justify-end gap-3">
 					<button
