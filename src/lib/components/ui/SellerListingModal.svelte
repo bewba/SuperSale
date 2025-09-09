@@ -28,6 +28,7 @@
 
 	// Default expiry date is today/same date
 	let expiryDate: string = phNow.toISOString().split("T")[0];
+	console.log(expiryDate);
 
 	// Default expiry time is 2 hours
 	let expiryTime: string = (() => {
@@ -128,8 +129,6 @@
 			existingImages,
 			removedImages // backend will remove these
 		};
-
-		console.log(payload);
 
 		if (deal) {
 			dispatch('updateListing', { ...payload, id: deal.id });
