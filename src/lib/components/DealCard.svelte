@@ -171,7 +171,7 @@
 		</div>
 
 		<!-- Right -->
-		<div class="text-right">
+		<!-- <div class="text-right">
 			<h2
 				class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white 
 							sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
@@ -182,7 +182,7 @@
 			<p class="text-xs text-gray-300 line-through sm:text-sm">
 				₱{deal.original_price.toFixed(2)}
 			</p>
-		</div>
+		</div> -->
 
 	</div>
 </div>
