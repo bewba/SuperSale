@@ -19,6 +19,10 @@
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
 
+	let showEmailPrompt = $state(false);
+	let email = $state('');
+	let presenceTimer: ReturnType<typeof setTimeout> | null = null;
+
 	// References
 	let messagesContainer: HTMLDivElement;
 	let bottom: HTMLDivElement;
@@ -26,6 +30,7 @@
 	onMount(() => {
 		let unsub: () => void;
 		let unsubPresence: () => void;
+		let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
 		(async () => {
 			messages = await loadMessages(slug);
@@ -38,7 +43,6 @@
 
 			const pb = getPb();
 			unsubPresence = await pb.collection('chatroom_presence').subscribe('*', (e) => {
-				console.log(e.record.id);
 				if (e.record.chatroom_id === slug) {
 					const text =
 						e.action === 'create'
@@ -47,11 +51,7 @@
 								? `A user left the chatroom`
 								: null;
 
-					console.log('im gay', text);
-
 					if (text) {
-						console.log('📢 Presence event:', text);
-
 						messages = [
 							...messages,
 							{
@@ -63,17 +63,80 @@
 							}
 						];
 					}
+
+					// if someone else joins, cancel the 10s timer
+					if (e.action === 'create' && e.record.user_id !== user.id) {
+						if (presenceTimer) {
+							clearTimeout(presenceTimer);
+							presenceTimer = null;
+						}
+					}
 				}
 			});
+
+			// start 10s timer when current user joins
+			presenceTimer = setTimeout(async () => {
+				showEmailPrompt = true;
+				console.log('hello');
+				console.log('hello 2', showEmailPrompt);
+
+				try {
+					const chatRoom = await pb.collection('chat_rooms').getOne(slug);
+
+					console.log(chatRoom);
+
+					const { buyer, seller } = chatRoom;
+
+					console.log(buyer, seller);
+
+					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
+
+					console.log(otherParticipantId);
+
+					const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							recipient: otherParticipantId
+						})
+					});
+
+					if (!res.ok) {
+						console.error('Failed to send notification', await res.text());
+					} else {
+						console.log('Notification sent successfully');
+					}
+				} catch (err) {
+					console.error('Error sending notification:', err);
+				}
+			}, 10000);
 		})();
 
-		// return cleanup synchronously
+		// cleanup
 		return () => {
 			unsub?.();
 			unsubPresence?.();
 			leaveChatroom(slug, user.id);
+			if (presenceTimer) clearTimeout(presenceTimer);
 		};
 	});
+
+	function handleEmailSubmit() {
+		if (!email.trim()) return;
+		messages = [
+			...messages,
+			{
+				id: crypto.randomUUID(),
+				text: `Thanks! We'll notify you at ${email} once someone sends a message.`,
+				sender_id: null,
+				sender_name: null,
+				isSystem: true
+			}
+		];
+		showEmailPrompt = false;
+	}
 
 	async function handleSend() {
 		if (!newMessage.trim()) return;
@@ -162,3 +225,36 @@
 		</button>
 	</form>
 </div>
+
+{#if showEmailPrompt}
+	<!-- Overlay -->
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+		<!-- Modal -->
+		<form
+			on:submit|preventDefault={handleEmailSubmit}
+			class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+		>
+			<h2 class="mb-3 text-lg font-semibold text-gray-800">Hey! 👋</h2>
+			<p class="mb-5 text-sm leading-relaxed text-gray-600">
+				It looks like the person you’re chatting with is currently offline. Leave us your email and
+				we’ll notify you once they’re back online.
+			</p>
+
+			<input
+				type="email"
+				placeholder="Enter your email"
+				bind:value={email}
+				class="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+				       focus:border-orange-400 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+			/>
+
+			<button
+				type="submit"
+				class="w-full rounded-lg bg-orange-500 px-4 py-2 font-medium text-white
+				       transition-transform hover:bg-orange-600 active:scale-95"
+			>
+				Save
+			</button>
+		</form>
+	</div>
+{/if}
