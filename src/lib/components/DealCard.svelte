@@ -155,7 +155,7 @@
 			</p>
 
 			<!-- Name and description -->
-			<div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
+			<!-- <div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
 				<h2
 					class="truncate text-xl leading-tight font-semibold sm:text-2xl md:text-3xl lg:text-4xl"
 				>
@@ -167,7 +167,7 @@
 				>
 					{deal.reason}
 				</p>
-			</div>
+			</div> -->
 		</div>
 
 		<!-- Right -->
