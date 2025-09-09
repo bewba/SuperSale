@@ -267,7 +267,7 @@
 						<div class="relative">
 							<input
 								type="number"
-								min="50"
+								min="1"
 								max="100"
 								step="1"
 								bind:value={discountPercent}
