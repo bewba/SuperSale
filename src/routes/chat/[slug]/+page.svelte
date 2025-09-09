@@ -158,6 +158,11 @@
 	});
 </script>
 
+// TODO: 1. send an email with the link to the pocketbase 2. add a password to each chatroom so that
+we can bypass the chats via URL 3. guests who provided their emails will be able to receive an email
+(Flow: 1. check PB if they have an email assoc with fp, 2. pass it to the request handler, dont read
+sb anymore )
+
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
 	<!-- Sticky Header -->
 	<div
