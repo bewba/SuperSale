@@ -6,31 +6,73 @@
 		subscribeToMessages,
 		enterChatroom,
 		sendMessage,
-		type Message
+		leaveChatroom,
+		type Message,
+		type SystemMessage
 	} from '$lib/utils/chat';
+	import { getPb } from '$lib/pocketbase/pb.client';
 
 	let { data } = $props();
 	const slug = data.slug;
 	const user = data.user;
 
-	let messages: Message[] = $state([]);
+	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
 
 	// References
 	let messagesContainer: HTMLDivElement;
 	let bottom: HTMLDivElement;
 
-	onMount(async () => {
-		messages = await loadMessages(slug);
+	onMount(() => {
+		let unsub: () => void;
+		let unsubPresence: () => void;
 
-		const unsub = await subscribeToMessages(slug, (m) => {
-			// replace array so $state sees a new value
-			messages = [...messages, m];
-		});
+		(async () => {
+			messages = await loadMessages(slug);
 
-		enterChatroom(slug, user.id);
+			unsub = await subscribeToMessages(slug, (m) => {
+				messages = [...messages, m];
+			});
 
-		return () => unsub();
+			enterChatroom(slug, user.id);
+
+			const pb = getPb();
+			unsubPresence = await pb.collection('chatroom_presence').subscribe('*', (e) => {
+				console.log(e.record.id);
+				if (e.record.chatroom_id === slug) {
+					const text =
+						e.action === 'create'
+							? `A user joined the chatroom`
+							: e.action === 'delete'
+								? `A user left the chatroom`
+								: null;
+
+					console.log('im gay', text);
+
+					if (text) {
+						console.log('📢 Presence event:', text);
+
+						messages = [
+							...messages,
+							{
+								id: crypto.randomUUID(),
+								text,
+								sender_id: null,
+								sender_name: null,
+								isSystem: true
+							}
+						];
+					}
+				}
+			});
+		})();
+
+		// return cleanup synchronously
+		return () => {
+			unsub?.();
+			unsubPresence?.();
+			leaveChatroom(slug, user.id);
+		};
 	});
 
 	async function handleSend() {
@@ -75,19 +117,27 @@
 	<!-- Messages area -->
 	<div class="messages flex-1 space-y-3 overflow-y-auto p-3 sm:p-4" bind:this={messagesContainer}>
 		{#each messages as m}
-			<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
-				<div
-					class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
-            {m.sender_id === user.id ? 'bg-orange-400 text-white' : 'bg-gray-200 text-gray-800'}"
-				>
-					{#if m.sender_id != user.id}
-						<p class="text-md mb-1 font-semibold text-gray-700 underline sm:mb-1.5">
-							{m.sender_name}
-						</p>
-					{/if}
-					<p class="text-2xl break-words">{m.text}</p>
+			{#if m.isSystem}
+				<!-- System message -->
+				<div class="flex justify-center">
+					<p class="text-sm text-gray-500 italic">{m.text}</p>
 				</div>
-			</div>
+			{:else}
+				<!-- Normal message -->
+				<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
+					<div
+						class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
+              {m.sender_id === user.id ? 'bg-orange-400 text-white' : 'bg-gray-200 text-gray-800'}"
+					>
+						{#if m.sender_id != user.id}
+							<p class="text-md mb-1 font-semibold text-gray-700 underline sm:mb-1.5">
+								{m.sender_name}
+							</p>
+						{/if}
+						<p class="text-2xl break-words">{m.text}</p>
+					</div>
+				</div>
+			{/if}
 		{/each}
 
 		<!-- Sentinel element to scroll into view -->

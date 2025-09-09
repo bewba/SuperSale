@@ -9,6 +9,12 @@ export type Message = RecordModel & {
 	sender_name?: string | null;
 };
 
+export type SystemMessage = {
+	id: string;
+	text: string;
+	isSystem: true;
+};
+
 export async function loadMessages(slug: string) {
 	const pb = getPb();
 	const list = await pb.collection('messages').getList<Message>(1, 100, {
@@ -77,18 +83,32 @@ export async function sendMessage(
 export async function enterChatroom(chatroomId: string, userId: string) {
 	const pb = getPb();
 	try {
-		await pb.collection('chatroom_presence').create({
+		const res = await pb.collection('chatroom_presence').create({
 			chatroom_id: chatroomId,
 			user_id: userId,
 			last_seen: new Date().toISOString()
 		});
+		console.log(`👤 ${userId} entered chatroom ${chatroomId}`, res);
 	} catch (e: any) {
-		// if already exists, just update last_seen
 		const record = await pb
 			.collection('chatroom_presence')
 			.getFirstListItem(`chatroom_id="${chatroomId}" && user_id="${userId}"`);
-		await pb.collection('chatroom_presence').update(record.id, {
+		const res = await pb.collection('chatroom_presence').update(record.id, {
 			last_seen: new Date().toISOString()
 		});
+		console.log(`🔄 ${userId} updated presence in chatroom ${chatroomId}`, res);
+	}
+}
+
+export async function leaveChatroom(chatroomId: string, userId: string) {
+	const pb = getPb();
+	try {
+		const record = await pb
+			.collection('chatroom_presence')
+			.getFirstListItem(`chatroom_id="${chatroomId}" && user_id="${userId}"`);
+		await pb.collection('chatroom_presence').delete(record.id);
+		console.log(`👋 ${userId} left chatroom ${chatroomId}`);
+	} catch (e) {
+		console.error('leaveChatroom error:', e);
 	}
 }

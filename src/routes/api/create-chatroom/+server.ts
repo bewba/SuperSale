@@ -1,6 +1,7 @@
 // src/routes/api/create-chatroom/+server.ts
 import type { RequestHandler } from './$types';
 import { sendSingleEmail } from '$lib/utils/email';
+import { SITE_NATURE } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	try {
@@ -39,17 +40,17 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 				});
 				record = existing;
 
-				console.log('nigger');
 				console.log(selectedDeal.owner_id);
 
 				const { data, error } = await locals.supabase.rpc('get_user_email', {
 					user_id: selectedDeal.owner_id
 				});
 
-				sendSingleEmail({
-					recipient: data,
-					subject: `✅ Someone sent you a message!`,
-					content: `
+				if (SITE_NATURE == 'production') {
+					sendSingleEmail({
+						recipient: data,
+						subject: `✅ Someone sent you a message!`,
+						content: `
 						<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
 							<div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 								<div style="text-align: center; margin-bottom: 30px;">
@@ -77,7 +78,8 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 							</div>
 						</div>
 					`
-				});
+					});
+				}
 
 				console.log(data);
 			} else {
