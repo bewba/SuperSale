@@ -11,10 +11,12 @@
 		type SystemMessage
 	} from '$lib/utils/chat';
 	import { getPb } from '$lib/pocketbase/pb.client';
+	import { supabase } from '$lib/supabase/supabaseClient';
 
 	let { data } = $props();
 	const slug = data.slug;
 	const user = data.user;
+	const hasSession = data.session;
 
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
@@ -226,7 +228,7 @@
 	</form>
 </div>
 
-{#if showEmailPrompt}
+{#if showEmailPrompt && hasSession != true}
 	<!-- Overlay -->
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
 		<!-- Modal -->
