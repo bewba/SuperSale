@@ -1,48 +1,79 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
 import { SITE_NATURE } from '$env/static/private';
+import { getPbBackground } from '$lib/pocketbase/pb.client';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const requestData = await request.json();
-
-		console.log('nigger', requestData);
+		console.log('Notification request data:', requestData);
 
 		const recipientId = requestData.recipient;
 		const hasEmail = requestData.hasEmail;
 
-		console.log('request data', requestData);
-		// call Supabase function to get user email
-
-		let recipient = '';
-
-		if (!hasEmail) {
-			const { data, error } = await locals.supabase.rpc('get_user_email', {
-				user_id: recipientId
+		if (!recipientId) {
+			return new Response(JSON.stringify({ error: 'Recipient ID required' }), {
+				status: 400
 			});
-
-			if (error) {
-				console.error('Supabase error:', error);
-				return new Response(JSON.stringify({ error: 'Failed to fetch user email' }), {
-					status: 500
-				});
-			}
-			recipient = Array.isArray(data) ? data[0] : data;
-		} else {
-			recipient = hasEmail.email;
 		}
 
-		if (!recipient) {
+		let recipientEmail = '';
+
+		if (hasEmail) {
+			// User has email, need to find it in PocketBase (guests)
+			try {
+				const pbBackground = getPbBackground();
+				const pbUser = await pbBackground
+					.collection('users')
+					.getFirstListItem(`user_id = "${recipientId}"`);
+
+				recipientEmail = pbUser.email;
+				console.log('Found email in PocketBase:', recipientEmail);
+			} catch (error) {
+				console.error('Error fetching from PocketBase:', error);
+				return new Response(
+					JSON.stringify({ error: 'Failed to fetch user email from PocketBase' }),
+					{
+						status: 500
+					}
+				);
+			}
+		} else {
+			// User doesn't have email, try Supabase (logged-in users) as fallback
+			try {
+				const { data, error } = await locals.supabase.rpc('get_user_email', {
+					user_id: recipientId
+				});
+
+				if (error) {
+					console.error('Supabase error:', error);
+					return new Response(
+						JSON.stringify({ error: 'Failed to fetch user email from Supabase' }),
+						{
+							status: 500
+						}
+					);
+				}
+
+				recipientEmail = Array.isArray(data) ? data[0] : data;
+				console.log('Found email in Supabase:', recipientEmail);
+			} catch (error) {
+				console.error('Error fetching from Supabase:', error);
+			}
+		}
+
+		if (!recipientEmail) {
+			console.log('No email found for recipient:', recipientId);
 			return new Response(JSON.stringify({ error: 'No email found for this user' }), {
 				status: 404
 			});
 		}
 
-		console.log(recipient);
+		console.log('Sending notification to:', recipientEmail);
 
 		if (SITE_NATURE === 'production') {
 			await sendSingleEmail({
-				recipient,
+				recipient: recipientEmail,
 				subject: `✅ Someone sent you a message!`,
 				content: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
@@ -71,7 +102,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				`
 			});
 		} else {
-			console.log('sending email to recipient: ', recipient);
+			console.log('Development mode - would send email to:', recipientEmail);
 		}
 
 		return new Response(JSON.stringify({ success: true }), { status: 200 });

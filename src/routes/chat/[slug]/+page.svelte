@@ -10,8 +10,7 @@
 		type Message,
 		type SystemMessage
 	} from '$lib/utils/chat';
-	import { getPb } from '$lib/pocketbase/pb.client';
-	import { supabase } from '$lib/supabase/supabaseClient';
+	import { getPb, getPbBackground } from '$lib/pocketbase/pb.client';
 
 	let { data } = $props();
 	const slug = data.slug;
@@ -20,40 +19,69 @@
 
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
-	let hasPbAccount = false;
+	let hasPbAccount = $state(false);
 
 	let showEmailPrompt = $state(false);
 	let email = $state('');
-	let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
 	// References
 	let messagesContainer: HTMLDivElement;
 	let bottom: HTMLDivElement;
 
 	const pb = getPb();
+	const pbBackground = getPbBackground();
+
+	// Helper function to check if other participant has email in PocketBase
+	async function checkOtherParticipantEmail(otherParticipantId: string): Promise<boolean> {
+		try {
+			await pbBackground.collection('users').getFirstListItem(`user_id = "${otherParticipantId}"`);
+			console.log('Other participant found in PB with email');
+			return true;
+		} catch {
+			console.log('Other participant not found in PB or no email');
+			return false;
+		}
+	}
 
 	onMount(() => {
 		let unsub: () => void;
 		let unsubPresence: () => void;
 		let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-		(async () => {
-			messages = await loadMessages(slug);
+		// Load messages
+		loadMessages(slug).then((msgs) => {
+			messages = msgs;
+		});
 
-			unsub = await subscribeToMessages(slug, (m) => {
-				messages = [...messages, m];
-			});
+		// Subscribe to messages
+		subscribeToMessages(slug, (m) => {
+			messages = [...messages, m];
+		}).then((sub) => {
+			unsub = sub;
+		});
 
-			enterChatroom(slug, user.id);
+		// Enter chatroom
+		enterChatroom(slug, user.id);
 
-			if (!hasSession) {
+		// Check if CURRENT user has PB account (for email prompt)
+		if (!hasSession) {
+			(async () => {
 				try {
-					hasPbAccount = await pb.collection('users').getFirstListItem(`user_id = "${user}"`);
-					console.log(hasPbAccount);
-				} catch (err) {}
-			}
+					const pbAccount = await pbBackground
+						.collection('users')
+						.getFirstListItem(`user_id = "${user.id}"`);
+					hasPbAccount = true;
+					console.log('Current user PB account found:', pbAccount);
+				} catch (err) {
+					hasPbAccount = false;
+					console.log('No PB account found for current user:', user.id);
+				}
+			})();
+		}
 
-			unsubPresence = await pb.collection('chatroom_presence').subscribe('*', (e) => {
+		// Presence subscription
+		pb.collection('chatroom_presence')
+			.subscribe('*', (e) => {
 				if (e.record.chatroom_id === slug) {
 					const text =
 						e.action === 'create'
@@ -75,7 +103,7 @@
 						];
 					}
 
-					// if someone else joins, cancel the 10s timer
+					// Cancel timer if another user joins
 					if (e.action === 'create' && e.record.user_id !== user.id) {
 						if (presenceTimer) {
 							clearTimeout(presenceTimer);
@@ -83,56 +111,50 @@
 						}
 					}
 				}
+			})
+			.then((sub) => {
+				unsubPresence = sub;
 			});
 
-			// start 10s timer when current user joins
-			presenceTimer = setTimeout(async () => {
+		// Timer for email prompt + notification
+		presenceTimer = setTimeout(async () => {
+			// Show email prompt for current user if needed
+			if (!hasSession && !hasPbAccount) {
 				showEmailPrompt = true;
-				console.log('hello');
-				console.log('hello 2', showEmailPrompt);
-				let hasEmail = false;
+			}
 
-				try {
-					const chatRoom = await pb.collection('chat_rooms').getOne(slug);
+			// Send notification to OTHER participant
+			try {
+				const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
+				const { buyer, seller } = chatRoom;
+				const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
 
-					const { buyer, seller } = chatRoom;
+				// Check if OTHER participant has email in PocketBase
+				const otherParticipantHasEmail = await checkOtherParticipantEmail(otherParticipantId);
 
-					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
+				console.log('Other participant has email in PB:', otherParticipantHasEmail);
 
-					try {
-						hasEmail = await pb
-							.collection('users')
-							.getFirstListItem(`user_id = "${otherParticipantId}"`);
-					} catch (err) {
-						// not found → stay false
-						hasEmail = false;
-					}
+				// Send notification request
+				const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						recipient: otherParticipantId,
+						hasEmail: otherParticipantHasEmail // true = check PB, false = check Supabase
+					})
+				});
 
-					console.log(hasEmail);
-
-					const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							recipient: otherParticipantId,
-							hasEmail: hasEmail
-						})
-					});
-
-					if (!res.ok) {
-						console.error('Failed to send notification', await res.text());
-					} else {
-						console.log('Notification sent successfully');
-					}
-				} catch (err) {
-					console.error('Error sending notification:', err);
+				if (!res.ok) {
+					console.error('Failed to send notification', await res.text());
+				} else {
+					console.log('Notification request sent successfully');
 				}
-			}, 10000);
-		})();
+			} catch (err) {
+				console.error('Error in notification process:', err);
+			}
+		}, 10000);
 
-		// cleanup
+		// Cleanup
 		return () => {
 			unsub?.();
 			unsubPresence?.();
@@ -143,6 +165,7 @@
 
 	async function handleEmailSubmit() {
 		if (!email.trim()) return;
+
 		messages = [
 			...messages,
 			{
@@ -155,51 +178,39 @@
 		];
 		showEmailPrompt = false;
 
-		console.log(user.id);
-
 		const user_id = user.id;
-
-		console.log(user_id, email);
+		console.log('Saving email for current user:', user_id, email);
 
 		try {
+			// Save current user's email to PB
 			if (!hasSession) {
-				const { data, error } = await pb.collection('users').create({
-					user_id: user_id,
-					email: email
+				const { data, error } = await pbBackground.collection('users').create({
+					user_id,
+					email: email.trim()
 				});
-
-				console.log(data, error);
+				console.log('Saved current user email to PB:', data, error);
+				hasPbAccount = true;
 			}
-			console.log('Saved email to PB for fingerprint:', user);
 		} catch (err) {
 			console.error('Error saving email notification:', err);
 		}
 	}
 
 	async function handleSend() {
+		console.log('sending message');
 		if (!newMessage.trim()) return;
 		await sendMessage(slug, newMessage, user);
 		newMessage = '';
 	}
 
-	// Auto-scroll whenever on new message sent
+	// Auto-scroll on new messages
 	$effect(() => {
-		// Read a reactive dependency so this effect re-runs
 		const _len = messages.length;
-
-		// Wait for DOM to update, then scroll
 		tick().then(() => {
 			bottom?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 		});
 	});
 </script>
-
-<!-- TODO: 
-1. send an email with the link to the pocketbase 
-2. add a password to each chatroom so that we can bypass the chats via URL 
-3. guests who provided their emails will be able to receive an email
-(Flow: 1. check PB if they have an email assoc with fp, 2. pass it to the request handler, dont read
-sb anymore ) -->
 
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
 	<!-- Sticky Header -->
@@ -216,7 +227,6 @@ sb anymore ) -->
 			<ArrowLeft class="h-12 w-12 text-orange-700 sm:h-11 sm:w-11" />
 		</button>
 
-		<!-- Chat partner name -->
 		<h2 class="truncate text-2xl font-semibold text-gray-800 sm:text-base md:text-3xl">
 			Chatting with Guest!
 		</h2>
@@ -226,12 +236,10 @@ sb anymore ) -->
 	<div class="messages flex-1 space-y-3 overflow-y-auto p-3 sm:p-4" bind:this={messagesContainer}>
 		{#each messages as m}
 			{#if m.isSystem}
-				<!-- System message -->
 				<div class="flex justify-center">
 					<p class="text-sm text-gray-500 italic">{m.text}</p>
 				</div>
 			{:else}
-				<!-- Normal message -->
 				<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
 					<div
 						class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
@@ -248,7 +256,6 @@ sb anymore ) -->
 			{/if}
 		{/each}
 
-		<!-- Sentinel element to scroll into view -->
 		<div bind:this={bottom} aria-hidden="true"></div>
 	</div>
 
@@ -272,17 +279,15 @@ sb anymore ) -->
 </div>
 
 {#if showEmailPrompt && hasSession != true && hasPbAccount != true}
-	<!-- Overlay -->
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-		<!-- Modal -->
 		<form
 			on:submit|preventDefault={handleEmailSubmit}
 			class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
 		>
 			<h2 class="mb-3 text-lg font-semibold text-gray-800">Hey! 👋</h2>
 			<p class="mb-5 text-sm leading-relaxed text-gray-600">
-				It looks like the person you’re chatting with is currently offline. Leave us your email and
-				we’ll notify you once they’re back online.
+				It looks like the person you're chatting with is currently offline. Leave us your email and
+				we'll notify you once they're back online.
 			</p>
 
 			<input

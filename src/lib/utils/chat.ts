@@ -71,7 +71,7 @@ export async function sendMessage(
 	console.log(payload);
 
 	try {
-		const res = await pb.collection('messages').create(payload);
+		const res = await pb.collection('messages').create(payload, { $autoCancel: false });
 		console.log('✅ Message sent:', res);
 		return res;
 	} catch (err: any) {
