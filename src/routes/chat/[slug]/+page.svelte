@@ -20,6 +20,8 @@
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
 	let hasPbAccount = $state(false);
+	let otherParticipantOnline = $state(false);
+	let emailSent = $state(false);
 
 	let showEmailPrompt = $state(false);
 	let email = $state('');
@@ -39,6 +41,18 @@
 			return true;
 		} catch {
 			console.log('Other participant not found in PB or no email');
+			return false;
+		}
+	}
+
+	// Helper function to check if other participant is currently online
+	async function checkOtherParticipantOnline(otherParticipantId: string): Promise<boolean> {
+		try {
+			const presenceRecords = await pbBackground.collection('chatroom_presence').getFullList({
+				filter: `chatroom_id = "${slug}" && user_id = "${otherParticipantId}"`
+			});
+			return presenceRecords.length > 0;
+		} catch {
 			return false;
 		}
 	}
@@ -79,6 +93,18 @@
 			})();
 		}
 
+		// Initial check for other participant's online status
+		(async () => {
+			try {
+				const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
+				const { buyer, seller } = chatRoom;
+				const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
+				otherParticipantOnline = await checkOtherParticipantOnline(otherParticipantId);
+			} catch (err) {
+				console.error('Error checking other participant status:', err);
+			}
+		})();
+
 		// Presence subscription
 		pb.collection('chatroom_presence')
 			.subscribe('*', (e) => {
@@ -103,9 +129,12 @@
 						];
 					}
 
-					// Cancel timer if another user joins
-					if (e.action === 'create' && e.record.user_id !== user.id) {
-						if (presenceTimer) {
+					// Update online status when other user joins/leaves
+					if (e.record.user_id !== user.id) {
+						otherParticipantOnline = e.action === 'create';
+
+						// Cancel timer if another user joins
+						if (e.action === 'create' && presenceTimer) {
 							clearTimeout(presenceTimer);
 							presenceTimer = null;
 						}
@@ -123,34 +152,59 @@
 				showEmailPrompt = true;
 			}
 
-			// Send notification to OTHER participant
-			try {
-				const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
-				const { buyer, seller } = chatRoom;
-				const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
+			// Only send notification to OTHER participant if they're NOT online
+			if (!otherParticipantOnline) {
+				try {
+					const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
+					const { buyer, seller } = chatRoom;
+					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
 
-				// Check if OTHER participant has email in PocketBase
-				const otherParticipantHasEmail = await checkOtherParticipantEmail(otherParticipantId);
+					// Double-check if OTHER participant is still offline
+					const stillOffline = !(await checkOtherParticipantOnline(otherParticipantId));
 
-				console.log('Other participant has email in PB:', otherParticipantHasEmail);
+					if (stillOffline) {
+						// Check if OTHER participant has email in PocketBase
+						const otherParticipantHasEmail = await checkOtherParticipantEmail(otherParticipantId);
 
-				// Send notification request
-				const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						recipient: otherParticipantId,
-						hasEmail: otherParticipantHasEmail // true = check PB, false = check Supabase
-					})
-				});
+						console.log('Other participant has email in PB:', otherParticipantHasEmail);
+						console.log('Sending notification to offline participant');
 
-				if (!res.ok) {
-					console.error('Failed to send notification', await res.text());
-				} else {
-					console.log('Notification request sent successfully');
+						// Send notification request
+						const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								recipient: otherParticipantId,
+								hasEmail: otherParticipantHasEmail // true = check PB, false = check Supabase
+							})
+						});
+
+						if (!res.ok) {
+							console.error('Failed to send notification', await res.text());
+						} else {
+							console.log('Notification request sent successfully');
+							emailSent = true;
+
+							// Add system message to show email was sent
+							messages = [
+								...messages,
+								{
+									id: crypto.randomUUID(),
+									text: `📧 We've notified the other participant that you're waiting to chat!`,
+									sender_id: null,
+									sender_name: null,
+									isSystem: true
+								}
+							];
+						}
+					} else {
+						console.log('Other participant came online, skipping notification');
+					}
+				} catch (err) {
+					console.error('Error in notification process:', err);
 				}
-			} catch (err) {
-				console.error('Error in notification process:', err);
+			} else {
+				console.log('Other participant is online, no notification needed');
 			}
 		}, 10000);
 
@@ -227,9 +281,21 @@
 			<ArrowLeft class="h-12 w-12 text-orange-700 sm:h-11 sm:w-11" />
 		</button>
 
-		<h2 class="truncate text-2xl font-semibold text-gray-800 sm:text-base md:text-3xl">
-			Chatting with Guest!
-		</h2>
+		<div class="flex flex-1 items-center justify-between">
+			<h2 class="truncate text-2xl font-semibold text-gray-800 sm:text-base md:text-3xl">
+				Chatting with Guest!
+			</h2>
+
+			<!-- Online status indicator -->
+			<div class="flex items-center gap-2">
+				<div
+					class="h-3 w-3 rounded-full {otherParticipantOnline ? 'bg-green-500' : 'bg-gray-400'}"
+				></div>
+				<span class="hidden text-sm text-gray-600 sm:inline">
+					{otherParticipantOnline ? 'Online' : 'Offline'}
+				</span>
+			</div>
+		</div>
 	</div>
 
 	<!-- Messages area -->
