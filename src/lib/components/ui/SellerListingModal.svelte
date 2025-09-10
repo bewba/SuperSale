@@ -318,7 +318,15 @@
 					</div>
 				</div>	
 
-				<div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+				<div class="flex gap-3">
+					{#if mode === 'edit'}	
+						<button
+							on:click={() => dispatch('deleteListing', { deal })}
+							class="cursor-pointer w-full text-2xl rounded-lg bg-red-500 px-4 py-2 text-white shadow-md transition hover:bg-red-600"
+						>
+							Delete
+						</button>
+					{/if}
 					<button
 						type="submit"
 						class="cursor-pointer text-2xl rounded-lg bg-green-600 px-4 py-2 text-white w-full"

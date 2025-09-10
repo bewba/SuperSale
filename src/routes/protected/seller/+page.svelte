@@ -522,6 +522,10 @@
 			sendEditListingToServer(e.detail);
 			showModal = false;
 		}}
+		on:deleteListing={(e) => {
+			openDeleteModal(e.detail.deal);
+			showModal = false;
+		}}	
 	/>
 {/if}
 
