@@ -26,12 +26,18 @@
 	let showEmailPrompt = $state(false);
 	let email = $state('');
 
+	// ADDED: Track if first message has been sent to control when timer starts
+	let firstMessageSent = $state(false);
+
 	// References
 	let messagesContainer: HTMLDivElement;
 	let bottom: HTMLDivElement;
 
 	const pb = getPb();
 	const pbBackground = getPbBackground();
+
+	// ADDED: Variable to store the timer reference at module level
+	let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
 	// Helper function to check if other participant has email in PocketBase
 	async function checkOtherParticipantEmail(otherParticipantId: string): Promise<boolean> {
@@ -57,10 +63,78 @@
 		}
 	}
 
+	async function startNotificationTimer() {
+		// Clear any existing timer first
+		if (presenceTimer) {
+			clearTimeout(presenceTimer);
+		}
+
+		presenceTimer = setTimeout(async () => {
+			// Show email prompt for current user if needed
+			if (!hasSession && !hasPbAccount) {
+				showEmailPrompt = true;
+			}
+
+			// Only send notification to OTHER participant if they're NOT online
+			if (!otherParticipantOnline) {
+				try {
+					const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
+					const { buyer, seller } = chatRoom;
+					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
+
+					// Double-check if OTHER participant is still offline
+					const stillOffline = !(await checkOtherParticipantOnline(otherParticipantId));
+
+					if (stillOffline) {
+						// Check if OTHER participant has email in PocketBase
+						const otherParticipantHasEmail = await checkOtherParticipantEmail(otherParticipantId);
+
+						console.log('Other participant has email in PB:', otherParticipantHasEmail);
+						console.log('Sending notification to offline participant');
+
+						// Send notification request
+						const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								recipient: otherParticipantId,
+								hasEmail: otherParticipantHasEmail // true = check PB, false = check Supabase
+							})
+						});
+
+						if (!res.ok) {
+							console.error('Failed to send notification', await res.text());
+						} else {
+							console.log('Notification request sent successfully');
+							emailSent = true;
+
+							// Add system message to show email was sent
+							messages = [
+								...messages,
+								{
+									id: crypto.randomUUID(),
+									text: `📧 We've notified the other participant that you're waiting to chat!`,
+									sender_id: null,
+									sender_name: null,
+									isSystem: true
+								}
+							];
+						}
+					} else {
+						console.log('Other participant came online, skipping notification');
+					}
+				} catch (err) {
+					console.error('Error in notification process:', err);
+				}
+			} else {
+				console.log('Other participant is online, no notification needed');
+			}
+		}, 10000);
+	}
+
 	onMount(() => {
 		let unsub: () => void;
 		let unsubPresence: () => void;
-		let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
 		// Load messages
 		loadMessages(slug).then((msgs) => {
@@ -145,69 +219,6 @@
 				unsubPresence = sub;
 			});
 
-		// Timer for email prompt + notification
-		presenceTimer = setTimeout(async () => {
-			// Show email prompt for current user if needed
-			if (!hasSession && !hasPbAccount) {
-				showEmailPrompt = true;
-			}
-
-			// Only send notification to OTHER participant if they're NOT online
-			if (!otherParticipantOnline) {
-				try {
-					const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
-					const { buyer, seller } = chatRoom;
-					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
-
-					// Double-check if OTHER participant is still offline
-					const stillOffline = !(await checkOtherParticipantOnline(otherParticipantId));
-
-					if (stillOffline) {
-						// Check if OTHER participant has email in PocketBase
-						const otherParticipantHasEmail = await checkOtherParticipantEmail(otherParticipantId);
-
-						console.log('Other participant has email in PB:', otherParticipantHasEmail);
-						console.log('Sending notification to offline participant');
-
-						// Send notification request
-						const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								recipient: otherParticipantId,
-								hasEmail: otherParticipantHasEmail // true = check PB, false = check Supabase
-							})
-						});
-
-						if (!res.ok) {
-							console.error('Failed to send notification', await res.text());
-						} else {
-							console.log('Notification request sent successfully');
-							emailSent = true;
-
-							// Add system message to show email was sent
-							messages = [
-								...messages,
-								{
-									id: crypto.randomUUID(),
-									text: `📧 We've notified the other participant that you're waiting to chat!`,
-									sender_id: null,
-									sender_name: null,
-									isSystem: true
-								}
-							];
-						}
-					} else {
-						console.log('Other participant came online, skipping notification');
-					}
-				} catch (err) {
-					console.error('Error in notification process:', err);
-				}
-			} else {
-				console.log('Other participant is online, no notification needed');
-			}
-		}, 10000);
-
 		// Cleanup
 		return () => {
 			unsub?.();
@@ -255,6 +266,11 @@
 		if (!newMessage.trim()) return;
 		await sendMessage(slug, newMessage, user);
 		newMessage = '';
+
+		if (!firstMessageSent) {
+			firstMessageSent = true;
+			startNotificationTimer();
+		}
 	}
 
 	// Auto-scroll on new messages
