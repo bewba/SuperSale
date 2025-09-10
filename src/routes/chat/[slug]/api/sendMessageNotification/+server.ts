@@ -6,22 +6,31 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const requestData = await request.json();
 
+		console.log('nigger', requestData);
+
 		const recipientId = requestData.recipient;
+		const hasEmail = requestData.hasEmail;
 
 		console.log('request data', requestData);
 		// call Supabase function to get user email
-		const { data, error } = await locals.supabase.rpc('get_user_email', {
-			user_id: recipientId
-		});
 
-		if (error) {
-			console.error('Supabase error:', error);
-			return new Response(JSON.stringify({ error: 'Failed to fetch user email' }), {
-				status: 500
+		let recipient = '';
+
+		if (!hasEmail) {
+			const { data, error } = await locals.supabase.rpc('get_user_email', {
+				user_id: recipientId
 			});
-		}
 
-		const recipient = Array.isArray(data) ? data[0] : data;
+			if (error) {
+				console.error('Supabase error:', error);
+				return new Response(JSON.stringify({ error: 'Failed to fetch user email' }), {
+					status: 500
+				});
+			}
+			recipient = Array.isArray(data) ? data[0] : data;
+		} else {
+			recipient = hasEmail.email;
+		}
 
 		if (!recipient) {
 			return new Response(JSON.stringify({ error: 'No email found for this user' }), {
@@ -61,6 +70,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					</div>
 				`
 			});
+		} else {
+			console.log('sending email to recipient: ', recipient);
 		}
 
 		return new Response(JSON.stringify({ success: true }), { status: 200 });

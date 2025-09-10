@@ -20,6 +20,7 @@
 
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
+	let hasPbAccount = false;
 
 	let showEmailPrompt = $state(false);
 	let email = $state('');
@@ -28,6 +29,8 @@
 	// References
 	let messagesContainer: HTMLDivElement;
 	let bottom: HTMLDivElement;
+
+	const pb = getPb();
 
 	onMount(() => {
 		let unsub: () => void;
@@ -43,7 +46,13 @@
 
 			enterChatroom(slug, user.id);
 
-			const pb = getPb();
+			if (!hasSession) {
+				try {
+					hasPbAccount = await pb.collection('users').getFirstListItem(`user_id = "${user}"`);
+					console.log(hasPbAccount);
+				} catch (err) {}
+			}
+
 			unsubPresence = await pb.collection('chatroom_presence').subscribe('*', (e) => {
 				if (e.record.chatroom_id === slug) {
 					const text =
@@ -81,19 +90,25 @@
 				showEmailPrompt = true;
 				console.log('hello');
 				console.log('hello 2', showEmailPrompt);
+				let hasEmail = false;
 
 				try {
 					const chatRoom = await pb.collection('chat_rooms').getOne(slug);
 
-					console.log(chatRoom);
-
 					const { buyer, seller } = chatRoom;
-
-					console.log(buyer, seller);
 
 					const otherParticipantId = buyer.trim() === user.id.trim() ? seller : buyer;
 
-					console.log(otherParticipantId);
+					try {
+						hasEmail = await pb
+							.collection('users')
+							.getFirstListItem(`user_id = "${otherParticipantId}"`);
+					} catch (err) {
+						// not found → stay false
+						hasEmail = false;
+					}
+
+					console.log(hasEmail);
 
 					const res = await fetch(`/chat/${slug}/api/sendMessageNotification`, {
 						method: 'POST',
@@ -101,7 +116,8 @@
 							'Content-Type': 'application/json'
 						},
 						body: JSON.stringify({
-							recipient: otherParticipantId
+							recipient: otherParticipantId,
+							hasEmail: hasEmail
 						})
 					});
 
@@ -125,7 +141,7 @@
 		};
 	});
 
-	function handleEmailSubmit() {
+	async function handleEmailSubmit() {
 		if (!email.trim()) return;
 		messages = [
 			...messages,
@@ -138,6 +154,26 @@
 			}
 		];
 		showEmailPrompt = false;
+
+		console.log(user.id);
+
+		const user_id = user.id;
+
+		console.log(user_id, email);
+
+		try {
+			if (!hasSession) {
+				const { data, error } = await pb.collection('users').create({
+					user_id: user_id,
+					email: email
+				});
+
+				console.log(data, error);
+			}
+			console.log('Saved email to PB for fingerprint:', user);
+		} catch (err) {
+			console.error('Error saving email notification:', err);
+		}
 	}
 
 	async function handleSend() {
@@ -158,10 +194,12 @@
 	});
 </script>
 
-// TODO: 1. send an email with the link to the pocketbase 2. add a password to each chatroom so that
-we can bypass the chats via URL 3. guests who provided their emails will be able to receive an email
+<!-- TODO: 
+1. send an email with the link to the pocketbase 
+2. add a password to each chatroom so that we can bypass the chats via URL 
+3. guests who provided their emails will be able to receive an email
 (Flow: 1. check PB if they have an email assoc with fp, 2. pass it to the request handler, dont read
-sb anymore )
+sb anymore ) -->
 
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
 	<!-- Sticky Header -->
@@ -233,7 +271,7 @@ sb anymore )
 	</form>
 </div>
 
-{#if showEmailPrompt && hasSession != true}
+{#if showEmailPrompt && hasSession != true && hasPbAccount != true}
 	<!-- Overlay -->
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
 		<!-- Modal -->
