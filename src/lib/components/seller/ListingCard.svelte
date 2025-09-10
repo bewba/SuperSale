@@ -40,60 +40,40 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-	class="relative h-64 w-full flex-shrink-0 overflow-hidden rounded-2xl bg-cover bg-center shadow-lg transition hover:scale-[1.02]"
+	class="relative h-64 md:h-72 lg:h-80 w-full flex-shrink-0 overflow-hidden rounded-2xl bg-cover bg-center shadow-lg transition hover:scale-[1.02] cursor-pointer"
 	style="background-image: url({deal.image_list && deal.image_list.length > 0
 		? deal.image_list[0]
 		: deal.image})"
+	role="button"
+	aria-label="button"
+	tabindex="0"
+	on:click={() => dispatch('edit', { deal })}
 >
 	<!-- Overlay -->
 	<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
 	<!-- Top Details -->
-	<div class="absolute top-0 right-0 left-0 flex items-center justify-between p-3 text-white">
+	<div class="absolute top-0 right-0 left-0 flex items-center justify-between p-2 sm:p-3 text-white">
 		<p
 			class="rounded-lg bg-gradient-to-r from-red-700 via-red-600 to-red-500
-             px-2 py-1 text-lg font-bold uppercase shadow-lg"
+             px-1.5 sm:px-2 py-0.5 sm:py-1 text-sm sm:text-lg font-bold uppercase shadow-lg"
 		>
-			-{deal.discount_percent}%
+			{deal.discount_percent}%
 		</p>
-
-		<!-- <span class="rounded-lg bg-blue-600 px-2 py-1 text-xs font-semibold shadow-md">
-      {deal.reason_category?.toUpperCase() || ''}
-    </span> -->
 	</div>
 
 	<!-- Bottom Details -->
-	<div class="absolute right-0 bottom-0 left-0 flex flex-col gap-2 p-4 text-white">
+	<div class="absolute right-0 bottom-0 left-0 flex flex-col gap-1.5 sm:gap-2 p-3 sm:p-4 text-white">
 		<div>
-			<h3 class="truncate text-xl font-semibold">{deal.title}</h3>
-			<p class="line-clamp-1 text-sm text-gray-200">{deal.reason}</p>
+			<h3 class="truncate text-lg sm:text-xl md:text-2xl font-semibold">{deal.title}</h3>
+			<p class="line-clamp-1 text-xs sm:text-sm text-gray-200">{deal.reason}</p>
 		</div>
 
 		<!-- Price -->
-		<div class="flex items-center justify-between gap-2">
-			<div>
-				<span class="text-sm text-gray-300 line-through">₱{deal.original_price}</span>
-				<span class="text-2xl font-extrabold text-[#f76800]">₱{deal.discount_price}</span>
-			</div>
-			<p class="h-fit w-fit rounded-lg bg-[#f76800] px-2 py-0.5 text-xs font-bold">
+		<div class="flex items-center justify-between gap-1.5 sm:gap-2">
+			<p class="h-fit w-fit rounded-lg bg-[#f76800] px-1.5 sm:px-2 py-0.5 text-[0.65rem] sm:text-xs font-bold">
 				Promo ends in: {timeLeft}
 			</p>
-		</div>
-
-		<!-- Actions -->
-		<div class="mt-2 flex gap-3">
-			<button
-				on:click={() => dispatch('edit', { deal })}
-				class="flex-1 cursor-pointer rounded-lg bg-blue-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-blue-600"
-			>
-				Edit
-			</button>
-			<button
-				on:click={() => dispatch('delete', { deal })}
-				class="flex-1 cursor-pointer rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white shadow-md transition hover:bg-red-600"
-			>
-				Delete
-			</button>
 		</div>
 	</div>
 </div>

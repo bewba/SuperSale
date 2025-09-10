@@ -24,16 +24,22 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		const supabase = locals.supabase;
 
+		// For safetys
+		const safeQuantity = quantity === '' ? 1 : Number(quantity);
+		const safeOriginalPrice = originalPrice === '' ? null : Number(originalPrice);
+		const safeDiscountPrice = discountPrice === '' ? null : Number(discountPrice);
+		const safeDiscountPercent = discountPercent === '' ? null : Number(discountPercent);
+
 		const expires_at = `${expiryDate}T${expiryTime}:00+08:00`;
 
 		const { data, error } = await supabase.from('products').insert([
 			{
 				title: productName,
 				image_list,
-				quantity,
-				original_price: originalPrice,
-				discount_price: discountPrice,
-				discount_percent: discountPercent,
+				quantity: safeQuantity,
+				original_price: safeOriginalPrice,
+				discount_price: safeDiscountPrice,
+				discount_percent: safeDiscountPercent,
 				reason: description,
 				reason_category: category,
 				contact_information: contactInfo,

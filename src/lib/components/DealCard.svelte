@@ -155,7 +155,7 @@
 			</p>
 
 			<!-- Name and description -->
-			<div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
+			<!-- <div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
 				<h2
 					class="truncate text-xl leading-tight font-semibold sm:text-2xl md:text-3xl lg:text-4xl"
 				>
@@ -167,11 +167,11 @@
 				>
 					{deal.reason}
 				</p>
-			</div>
+			</div> -->
 		</div>
 
 		<!-- Right -->
-		<div class="text-right">
+		<!-- <div class="text-right">
 			<h2
 				class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white 
 							sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
@@ -182,7 +182,7 @@
 			<p class="text-xs text-gray-300 line-through sm:text-sm">
 				₱{deal.original_price.toFixed(2)}
 			</p>
-		</div>
+		</div> -->
 
 	</div>
 </div>
