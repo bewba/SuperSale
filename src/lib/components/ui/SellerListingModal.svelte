@@ -205,6 +205,7 @@
 						<input
 							type="file"
 							accept="image/*"
+							required	
 							multiple
 							class="hidden"
 							on:change={handleImageUpload}
