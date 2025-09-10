@@ -14,10 +14,7 @@ export const actions: Actions = {
 
 		const { data, error } = await locals.supabase.auth.signUp({
 			email,
-			password,
-			options: {
-				emailRedirectTo: `${url.origin}/`
-			}
+			password
 		});
 
 		// Error handling
