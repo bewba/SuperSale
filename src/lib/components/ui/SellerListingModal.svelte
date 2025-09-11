@@ -21,21 +21,19 @@
 	let description = '';
 	let quantity: string = '1';
 	
-	
-	// I made this set to current PH date	
-	const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
-	const phNow = new Date(now);
+	let expiresInHours: number = 2;
 
-	// Default expiry date is today/same date
-	let expiryDate: string = phNow.toISOString().split("T")[0];
-	console.log(expiryDate);
+	function getExpiryTimestampz(hours: number): string {
+		// Current time in PH
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		// Add hours
+		const expiryPH = new Date(nowPH);
+		expiryPH.setHours(expiryPH.getHours() + hours);
 
-	// Default expiry time is 2 hours
-	let expiryTime: string = (() => {
-		const later = new Date(phNow);
-		later.setHours(later.getHours() + 2);
-		return later.toTimeString().slice(0, 5);
-	})();
+		return expiryPH.toISOString();
+	}
 
 	let imageFiles: File[] = [];
 	let imagePreviews: string[] = [];
@@ -113,6 +111,8 @@
 	}
 
 	function handleSubmit() {
+		const expires_at = getExpiryTimestampz(expiresInHours);	
+		
 		const payload = {
 			productName,
 			originalPrice,
@@ -120,9 +120,7 @@
 			discountPercent,
 			description,
 			quantity,
-			expiryDate,
-			// TODO: ADD TIME
-			expiryTime,
+			expires_at,
 			category,
 			contactInfo,
 			imageFiles,
@@ -143,18 +141,11 @@
 		productName = deal.title;
 		description = deal.reason;
 		quantity = String(deal.quantity);
-		expiryDate = deal.expires_at;
 		category = deal.reason_category;
 		contactInfo = deal.contact_information;
 		discountPercent = deal.discount_percent;
 		existingImages = deal.image_list ? [...deal.image_list] : [];
 		imagePreviews = [...existingImages];
-
-		if (deal.expires_at) {
-			const d = new Date(deal.expires_at);
-			expiryDate = d.toISOString().split("T")[0];
-			expiryTime = d.toTimeString().slice(0, 5);
-  	}
 
 		// Load existing images into previews
 		if (deal.image_list && deal.image_list.length > 0) {
@@ -309,10 +300,10 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-md font-semibold mb-1">Deal expires in:</label>
+						<label class="block text-md font-semibold mb-1">Deal expires in (hours):</label>
 						<input
-							type="time"
-							bind:value={expiryTime}
+							type="number"
+							bind:value={expiresInHours}
 							required
 							class="w-full rounded-lg border p-2"
 						/>
