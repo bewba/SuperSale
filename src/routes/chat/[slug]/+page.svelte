@@ -16,6 +16,9 @@
 	const slug = data.slug;
 	const user = data.user;
 	const hasSession = data.session;
+	const deal = data.deal;
+
+	console.log("SELECTED DEAL: ", deal);
 
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
@@ -280,6 +283,19 @@
 			bottom?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 		});
 	});
+
+
+	onMount(async () => {
+		const res = await fetch(`/chat/${slug}/api/getSelectedDeal?uuid=${deal}`);
+		if (res.ok) {
+			const { deal } = await res.json();
+			console.log("Selected product:", deal);
+			// store/use `deal` in component state
+		} else {
+			console.error("Failed to fetch product:", await res.text());
+		}
+	});
+
 </script>
 
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
