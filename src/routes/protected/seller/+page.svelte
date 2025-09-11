@@ -49,7 +49,7 @@
 			if (result.success) {
 				myDeals = myDeals.filter((d) => d.id !== dealToDelete?.id);
 
-				toastSuccess(`"${dealToDelete.title}" has been deleted.`, {
+				toastSuccess(`Item has been deleted.`, {
 					title: 'Deleted',
 					duration: 2000,
 					position: 'top-right'
@@ -95,6 +95,18 @@
 	let modalMode: 'add' | 'edit' = 'add';
 	let selectedDeal: Deal | null = null;
 
+	function getExpiryTimestampz(hours: number): string {
+		// Current time in PH
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		// Add hours
+		const expiryPH = new Date(nowPH);
+		expiryPH.setHours(expiryPH.getHours() + hours);
+
+		return expiryPH.toISOString();
+	}
+
 	function addListing() {
 		modalMode = 'add';
 		selectedDeal = null;
@@ -113,6 +125,16 @@
 
 			console.log(deal);
 
+			let expires_at: string;
+
+			if (deal) {
+				expires_at = deal.expiresInHours > 0
+				? getExpiryTimestampz(deal.expiresInHours)
+				: deal.expires_at;
+			} else {
+				expires_at = getExpiryTimestampz(deal.expiresInHours);
+			}
+
 			// Append all fields
 			formData.append('productName', deal.productName);
 			formData.append('originalPrice', String(deal.originalPrice));
@@ -125,8 +147,7 @@
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
 
-			formData.append('expiryDate', deal.expiryDate);
-			formData.append('expiryTime', deal.expiryTime);
+			formData.append("expires_at", expires_at);
 
 			if (deal.existingImages) {
 				formData.append('existingImages', JSON.stringify(deal.existingImages));

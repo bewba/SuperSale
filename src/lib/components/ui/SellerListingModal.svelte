@@ -111,8 +111,20 @@
 	}
 
 	function handleSubmit() {
-		const expires_at = getExpiryTimestampz(expiresInHours);	
-		
+		let expires_at: string;	
+	
+		if (deal) {
+			// In edit mode
+			if (expiresInHours > 0) {
+				expires_at = getExpiryTimestampz(expiresInHours);
+			} else {
+				expires_at = deal.expires_at;
+			}
+		} else {
+			// In add mode always compute from now
+			expires_at = getExpiryTimestampz(expiresInHours);
+		}
+
 		const payload = {
 			productName,
 			originalPrice,
@@ -146,6 +158,18 @@
 		discountPercent = deal.discount_percent;
 		existingImages = deal.image_list ? [...deal.image_list] : [];
 		imagePreviews = [...existingImages];
+
+		// Compute hours left until expiry
+		if (deal.expires_at) {
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		const expiryDate = new Date(deal.expires_at);
+		const diffMs = expiryDate.getTime() - nowPH.getTime();
+
+		// 0 if past expiry
+		expiresInHours = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)));
+	}
 
 		// Load existing images into previews
 		if (deal.image_list && deal.image_list.length > 0) {
@@ -196,9 +220,8 @@
 						<input
 							type="file"
 							accept="image/*"
-							required	
 							multiple
-							class="hidden"
+							class="sr-only"
 							on:change={handleImageUpload}
 						/>
 					</label>
@@ -330,3 +353,17 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+</style>

@@ -19,11 +19,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const reason_category = formData.get('category') as string;
 		const contact_information = formData.get('contactInfo') as string;
 
-		const expiryDate = formData.get('expiryDate') as string;
-		const expiryTime = formData.get('expiryTime') as string;
-		// combine
-		const expires_at = expiryDate && expiryTime
-		? `${expiryDate}T${expiryTime}` : null;
+		const expires_at = formData.get('expires_at') as string | null;
 
 		const existingImages = JSON.parse(formData.get('existingImages') as string || '[]');
 		const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
