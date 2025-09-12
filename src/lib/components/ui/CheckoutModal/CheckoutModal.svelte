@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import ImageRoll from './ImageRoll.svelte';
 	import type { Deal } from '$lib/types/types';
 
@@ -20,19 +20,25 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-	role="button"
-	tabindex="0"
 	class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-	on:click={closeModal}
+  role="presentation"
+  aria-hidden="true"
 >
+
+	<!-- Overlay  -->
+	<div class="absolute inset-0" on:click={closeModal} aria-hidden="true"></div>
+
 	<div
-		class="relative mx-2 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-md
-           sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl"
-		on:click|stopPropagation
-		role="dialog"
+		role="button"
 		tabindex="0"
+		class="relative mx-2 max-h-[90vh] w-full overflow-y-auto rounded-lg bg-white shadow-md
+					sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl"
+		on:click={closeModal}
+		on:keydown={(e) => {
+			if (e.key === "Escape") closeModal();
+		}}
+		aria-label="Close modal"
 	>
 		<div class="flex flex-col lg:flex-row">
 			<!-- Image + discount + expiry -->
