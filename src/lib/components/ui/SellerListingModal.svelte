@@ -206,7 +206,7 @@
 			<form on:submit|preventDefault={handleSubmit} class="space-y-5 sm:space-y-6">
 				<!-- Image Upload -->
 				<div class="space-y-3 mt-2">
-					<label class="block text-sm sm:text-md font-semibold text-gray-700">
+					<label for="" class="block text-sm sm:text-md font-semibold text-gray-700">
 						Upload Images (max 4)
 						<span class="text-sm sm:text-md font-extrabold text-red-600">*</span>
 					</label>
@@ -278,7 +278,7 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-md font-semibold">Discount</label>
+						<label for="" class="block text-md font-semibold">Discount</label>
 						<div class="relative">
 							<input
 								type="number"
@@ -323,12 +323,16 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-md font-semibold mb-1">Deal expires in (hours):</label>
+						<label for="" class="block text-md font-semibold mb-1">Deal expires in (hours):</label>
 						<input
 							type="number"
 							bind:value={expiresInHours}
 							required
+							enterkeyhint="done"	
 							class="w-full rounded-lg border p-2"
+							on:keydown={(e) => {
+								if (e.key === 'Enter') handleSubmit(e);
+							}}
 						/>
 					</div>
 				</div>	
