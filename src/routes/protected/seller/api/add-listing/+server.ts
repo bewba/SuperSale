@@ -12,11 +12,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			discountPercent,
 			description,
 			quantity,
-			expiryDate,
 			category,
 			contactInfo,
-			expiryTime,
-			image_list
+			image_list,
+			expires_at
 		} = body;
 
 		const user = locals.user?.id;
@@ -30,7 +29,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const safeDiscountPrice = discountPrice === '' ? null : Number(discountPrice);
 		const safeDiscountPercent = discountPercent === '' ? null : Number(discountPercent);
 
-		const expires_at = `${expiryDate}T${expiryTime}:00+08:00`;
 
 		const { data, error } = await supabase.from('products').insert([
 			{
@@ -43,8 +41,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				reason: description,
 				reason_category: category,
 				contact_information: contactInfo,
-				expires_at,
-				owner_id: user
+				owner_id: user,
+				expires_at
 			}
 		]);
 

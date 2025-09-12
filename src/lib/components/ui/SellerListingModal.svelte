@@ -21,21 +21,19 @@
 	let description = '';
 	let quantity: string = '1';
 	
-	
-	// I made this set to current PH date	
-	const now = new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" });
-	const phNow = new Date(now);
+	let expiresInHours: number = 2;
 
-	// Default expiry date is today/same date
-	let expiryDate: string = phNow.toISOString().split("T")[0];
-	console.log(expiryDate);
+	function getExpiryTimestampz(hours: number): string {
+		// Current time in PH
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		// Add hours
+		const expiryPH = new Date(nowPH);
+		expiryPH.setHours(expiryPH.getHours() + hours);
 
-	// Default expiry time is 2 hours
-	let expiryTime: string = (() => {
-		const later = new Date(phNow);
-		later.setHours(later.getHours() + 2);
-		return later.toTimeString().slice(0, 5);
-	})();
+		return expiryPH.toISOString();
+	}
 
 	let imageFiles: File[] = [];
 	let imagePreviews: string[] = [];
@@ -113,6 +111,20 @@
 	}
 
 	function handleSubmit() {
+		let expires_at: string;	
+	
+		if (deal) {
+			// In edit mode
+			if (expiresInHours > 0) {
+				expires_at = getExpiryTimestampz(expiresInHours);
+			} else {
+				expires_at = deal.expires_at;
+			}
+		} else {
+			// In add mode always compute from now
+			expires_at = getExpiryTimestampz(expiresInHours);
+		}
+
 		const payload = {
 			productName,
 			originalPrice,
@@ -120,9 +132,7 @@
 			discountPercent,
 			description,
 			quantity,
-			expiryDate,
-			// TODO: ADD TIME
-			expiryTime,
+			expires_at,
 			category,
 			contactInfo,
 			imageFiles,
@@ -143,18 +153,23 @@
 		productName = deal.title;
 		description = deal.reason;
 		quantity = String(deal.quantity);
-		expiryDate = deal.expires_at;
 		category = deal.reason_category;
 		contactInfo = deal.contact_information;
 		discountPercent = deal.discount_percent;
 		existingImages = deal.image_list ? [...deal.image_list] : [];
 		imagePreviews = [...existingImages];
 
+		// Compute hours left until expiry
 		if (deal.expires_at) {
-			const d = new Date(deal.expires_at);
-			expiryDate = d.toISOString().split("T")[0];
-			expiryTime = d.toTimeString().slice(0, 5);
-  	}
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		const expiryDate = new Date(deal.expires_at);
+		const diffMs = expiryDate.getTime() - nowPH.getTime();
+
+		// 0 if past expiry
+		expiresInHours = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)));
+	}
 
 		// Load existing images into previews
 		if (deal.image_list && deal.image_list.length > 0) {
@@ -206,7 +221,7 @@
 							type="file"
 							accept="image/*"
 							multiple
-							class="hidden"
+							class="sr-only"
 							on:change={handleImageUpload}
 						/>
 					</label>
@@ -308,17 +323,25 @@
 						/>
 					</div> -->
 					<div>
-						<label class="block text-md font-semibold mb-1">Deal expires in:</label>
+						<label class="block text-md font-semibold mb-1">Deal expires in (hours):</label>
 						<input
-							type="time"
-							bind:value={expiryTime}
+							type="number"
+							bind:value={expiresInHours}
 							required
 							class="w-full rounded-lg border p-2"
 						/>
 					</div>
 				</div>	
 
-				<div class="flex flex-col-reverse sm:flex-row justify-end gap-3">
+				<div class="flex gap-3">
+					{#if mode === 'edit'}	
+						<button
+							on:click={() => dispatch('deleteListing', { deal })}
+							class="cursor-pointer w-full text-2xl rounded-lg bg-red-500 px-4 py-2 text-white shadow-md transition hover:bg-red-600"
+						>
+							Delete
+						</button>
+					{/if}
 					<button
 						type="submit"
 						class="cursor-pointer text-2xl rounded-lg bg-green-600 px-4 py-2 text-white w-full"
@@ -330,3 +353,17 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
+	}
+</style>
