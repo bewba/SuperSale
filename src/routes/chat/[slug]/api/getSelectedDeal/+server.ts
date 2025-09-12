@@ -3,7 +3,6 @@ import type { RequestHandler } from "@sveltejs/kit";
 export const GET: RequestHandler = async ({ locals, url }) => {
   const supabase = locals.supabase;
 
-  // accept ?id=... (also supports ?deal=... or ?uuid=... for flexibility)
   const id =
     url.searchParams.get("id") ||
     url.searchParams.get("deal") ||

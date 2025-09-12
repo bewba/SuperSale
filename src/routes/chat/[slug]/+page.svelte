@@ -11,14 +11,15 @@
 		type SystemMessage
 	} from '$lib/utils/chat';
 	import { getPb, getPbBackground } from '$lib/pocketbase/pb.client';
+	import type { Deal } from '$lib/types/types.js';
+	import ChatDeal from '$lib/components/chat/ChatDeal.svelte';
 
 	let { data } = $props();
 	const slug = data.slug;
 	const user = data.user;
 	const hasSession = data.session;
 	const deal = data.deal;
-
-	console.log("SELECTED DEAL: ", deal);
+	let selectedDeal = $state<Deal>({} as Deal);
 
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
@@ -284,15 +285,12 @@
 		});
 	});
 
-
+	// Get the selected deal
 	onMount(async () => {
 		const res = await fetch(`/chat/${slug}/api/getSelectedDeal?uuid=${deal}`);
 		if (res.ok) {
-			const { deal } = await res.json();
-			console.log("Selected product:", deal);
-			// store/use `deal` in component state
-		} else {
-			console.error("Failed to fetch product:", await res.text());
+			const { deal: product } = await res.json();
+			Object.assign(selectedDeal, product);
 		}
 	});
 
@@ -329,6 +327,8 @@
 			</div>
 		</div>
 	</div>
+
+	<ChatDeal deal={selectedDeal} />
 
 	<!-- Messages area -->
 	<div class="messages flex-1 space-y-3 overflow-y-auto p-3 sm:p-4" bind:this={messagesContainer}>
