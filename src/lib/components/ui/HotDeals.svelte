@@ -121,8 +121,8 @@
 	});
 </script>
 
-<div class="m-2" id="hotdeals">
-	<h1 class="mb-2 text-2xl font-bold">This Week's Hotdeals!</h1>
+<div class="mt-4 mx-2" id="hotdeals">
+	<h1 class="mb-2 text-4xl font-bold">This Week's Hotdeals!</h1>
 
 	<!-- Slider container -->
 	<div class="relative">

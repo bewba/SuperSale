@@ -11,6 +11,7 @@
 	import { toastSuccess, toastError, toastInfo } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
 	import supabase from '$lib/supabase/supabaseClient';
+	import imageCompression from 'browser-image-compression';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -48,7 +49,7 @@
 			if (result.success) {
 				myDeals = myDeals.filter((d) => d.id !== dealToDelete?.id);
 
-				toastSuccess(`"${dealToDelete.title}" has been deleted.`, {
+				toastSuccess(`Item has been deleted.`, {
 					title: 'Deleted',
 					duration: 2000,
 					position: 'top-right'
@@ -94,6 +95,18 @@
 	let modalMode: 'add' | 'edit' = 'add';
 	let selectedDeal: Deal | null = null;
 
+	function getExpiryTimestampz(hours: number): string {
+		// Current time in PH
+		const nowPH = new Date(
+			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
+		);
+		// Add hours
+		const expiryPH = new Date(nowPH);
+		expiryPH.setHours(expiryPH.getHours() + hours);
+
+		return expiryPH.toISOString();
+	}
+
 	function addListing() {
 		modalMode = 'add';
 		selectedDeal = null;
@@ -112,6 +125,16 @@
 
 			console.log(deal);
 
+			let expires_at: string;
+
+			if (deal) {
+				expires_at = deal.expiresInHours > 0
+				? getExpiryTimestampz(deal.expiresInHours)
+				: deal.expires_at;
+			} else {
+				expires_at = getExpiryTimestampz(deal.expiresInHours);
+			}
+
 			// Append all fields
 			formData.append('productName', deal.productName);
 			formData.append('originalPrice', String(deal.originalPrice));
@@ -123,6 +146,8 @@
 			formData.append('category', deal.category);
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
+
+			formData.append("expires_at", expires_at);
 
 			if (deal.existingImages) {
 				formData.append('existingImages', JSON.stringify(deal.existingImages));
@@ -179,10 +204,16 @@
 			const uploadedUrls: string[] = [];
 			if (deal.imageFiles?.length > 0) {
 				for (const file of deal.imageFiles) {
+					const compressedFile = await imageCompression(file, {
+						maxSizeMB: 0.15, // target max size in MB
+						maxWidthOrHeight: 1024, // resize large images
+						useWebWorker: true
+					});
+
 					const fileName = `${crypto.randomUUID()}_${file.name}`;
 					const { data, error } = await supabase.storage
 						.from('productImages')
-						.upload(fileName, file);
+						.upload(fileName, compressedFile);
 
 					if (error) throw error;
 
@@ -512,6 +543,10 @@
 			sendEditListingToServer(e.detail);
 			showModal = false;
 		}}
+		on:deleteListing={(e) => {
+			openDeleteModal(e.detail.deal);
+			showModal = false;
+		}}	
 	/>
 {/if}
 

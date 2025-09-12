@@ -4,6 +4,7 @@ import { error, redirect } from '@sveltejs/kit';
 export const load: PageServerLoad = async ({ locals, params, cookies }) => {
 	// check if chatroom exists in your DB
 	const chatroom = await locals.pb.collection('chat_rooms').getOne(params.slug);
+	let hasAccount = false;
 
 	if (!chatroom) {
 		throw error(404, 'Chatroom not found');
@@ -25,9 +26,15 @@ export const load: PageServerLoad = async ({ locals, params, cookies }) => {
 
 	console.log(params);
 
+	if (locals.user) {
+		hasAccount = true;
+	}
+
 	return {
 		slug: params.slug,
 		user,
-		chatroom
+		session: hasAccount,
+		chatroom,
+		deal: chatroom.product
 	};
 };
