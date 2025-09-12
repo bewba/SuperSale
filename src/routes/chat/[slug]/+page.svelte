@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { ArrowLeft } from '@lucide/svelte';
+	import { ArrowLeft, ShoppingCart } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';
+	import ChatDeal from '$lib/components/chat/ChatDeal.svelte';	
 	import {
 		loadMessages,
 		subscribeToMessages,
@@ -11,12 +12,16 @@
 		type SystemMessage
 	} from '$lib/utils/chat';
 	import { getPb, getPbBackground } from '$lib/pocketbase/pb.client';
+	import type { Deal } from '$lib/types/types.js';	
 
 	let { data } = $props();
 	const slug = data.slug;
 	const user = data.user;
 	const hasSession = data.session;
-
+	const deal = data.deal;
+	let selectedDeal = $state<Deal>({} as Deal);
+	let showDealModal = $state(false);
+	
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
 	let hasPbAccount = $state(false);
@@ -280,6 +285,16 @@
 			bottom?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 		});
 	});
+
+	// Get the selected deal
+	onMount(async () => {
+		const res = await fetch(`/chat/${slug}/api/getSelectedDeal?uuid=${deal}`);
+		if (res.ok) {
+			const { deal: product } = await res.json();
+			Object.assign(selectedDeal, product);
+		}
+	});
+
 </script>
 
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
@@ -314,32 +329,48 @@
 		</div>
 	</div>
 
-	<!-- Messages area -->
-	<div class="messages flex-1 space-y-3 overflow-y-auto p-3 sm:p-4" bind:this={messagesContainer}>
-		{#each messages as m}
-			{#if m.isSystem}
-				<div class="flex justify-center">
-					<p class="text-sm text-gray-500 italic">{m.text}</p>
-				</div>
-			{:else}
-				<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
-					<div
-						class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
-              {m.sender_id === user.id ? 'bg-orange-400 text-white' : 'bg-gray-200 text-gray-800'}"
-					>
-						{#if m.sender_id != user.id}
-							<p class="text-md mb-1 font-semibold text-gray-700 underline sm:mb-1.5">
-								{m.sender_name}
-							</p>
-						{/if}
-						<p class="text-2xl break-words">{m.text}</p>
-					</div>
-				</div>
-			{/if}
-		{/each}
+	<button
+	  class="cursor-pointer flex mx-auto mt-2 w-fit rounded-xl text-2xl bg-orange-500 px-4 py-3 text-white shadow hover:bg-orange-600"
+	  on:click={() => (showDealModal = true)}
+	>
+		<ShoppingCart />  
+		<span class="ml-2">See product photos</span>
+	</button>
 
-		<div bind:this={bottom} aria-hidden="true"></div>
+	<!-- Messages area -->
+	<div
+		class="messages flex-1 overflow-y-auto p-3 sm:p-4"
+		bind:this={messagesContainer}
+	>
+		<div class="flex flex-col justify-end min-h-full space-y-3">
+			{#each messages as m}
+				{#if m.isSystem}
+					<div class="flex justify-center">
+						<p class="text-sm italic text-gray-500">{m.text}</p>
+					</div>
+				{:else}
+					<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
+						<div
+							class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
+								{m.sender_id === user.id
+									? 'bg-orange-400 text-white'
+									: 'bg-gray-200 text-gray-800'}"
+						>
+							{#if m.sender_id != user.id}
+								<p class="mb-1 text-md font-semibold underline text-gray-700 sm:mb-1.5">
+									{m.sender_name}
+								</p>
+							{/if}
+							<p class="break-words text-2xl">{m.text}</p>
+						</div>
+					</div>
+				{/if}
+			{/each}
+
+			<div bind:this={bottom} aria-hidden="true"></div>
+		</div>
 	</div>
+
 
 	<!-- Input area -->
 	<form
@@ -389,4 +420,11 @@
 			</button>
 		</form>
 	</div>
+{/if}
+
+{#if showDealModal}
+	<ChatDeal
+		selectedDeal={selectedDeal}
+		on:close={() => (showDealModal = false)}
+	/>
 {/if}

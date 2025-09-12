@@ -34,6 +34,7 @@ export const load: PageServerLoad = async ({ locals, params, cookies }) => {
 		slug: params.slug,
 		user,
 		session: hasAccount,
-		chatroom
+		chatroom,
+		deal: chatroom.product
 	};
 };
