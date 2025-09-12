@@ -12,7 +12,7 @@
       <p class="text-sm">
         supersale.phbusiness@gmail.com | Tim (+63) 995-134-335
       </p>
-      <p class="text-xs">Hero-photo property of @salcedomarket</p>
+      <!-- <p class="text-xs">Hero-photo property of @salcedomarket</p> -->
 		<!-- TODO: ADD SOCIAL MEDIA ICONS/LINKS -->
     </div>
   </div>

@@ -16,7 +16,7 @@
 
 <section
 	class="relative flex min-h-[100vh] items-center justify-center bg-cover bg-center pb-20 sm:min-h-[90vh] md:min-h-[100vh] lg:h-[100vh]"
-	style="background-image: url('/salcedo.jpg');"
+	style="background-image: url('/market.jpg');"
 >
 	<!-- Overlay -->
 	<div class="absolute inset-0 bg-black/60"></div>
