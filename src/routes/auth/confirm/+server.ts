@@ -10,18 +10,6 @@ export const GET = async ({ url, locals: { supabase } }) => {
 
 	console.log('confirming');
 
-	if (code) {
-		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-		if (error) {
-			console.error('Error exchanging code:', error.message);
-			throw redirect(303, '/auth/error');
-		}
-
-		console.log('success (code exchange)');
-		throw redirect(303, next);
-	}
-
 	if (token_hash && type) {
 		// ✅ Handle legacy verifyOtp flow
 		const { error } = await supabase.auth.verifyOtp({ token_hash, type });
@@ -59,8 +47,17 @@ export const GET = async ({ url, locals: { supabase } }) => {
 			console.log('success (verifyOtp)');
 			throw redirect(303, next);
 		}
-
 		console.log(error);
+	} else if (code) {
+		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+		if (error) {
+			console.error('Error exchanging code:', error.message);
+			throw redirect(303, '/auth/error');
+		}
+
+		console.log('success (code exchange)');
+		throw redirect(303, next);
 	}
 
 	throw redirect(303, '/auth/error');
