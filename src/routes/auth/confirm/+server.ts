@@ -7,6 +7,8 @@ export const GET = async ({ url, locals: { supabase } }) => {
 	const type = url.searchParams.get('type') as EmailOtpType | null;
 	const next = url.searchParams.get('next') || '/';
 
+	console.log('confirming');
+
 	if (token_hash && type) {
 		// ✅ Verify OTP
 		const { error } = await supabase.auth.verifyOtp({ token_hash, type });
@@ -44,9 +46,12 @@ export const GET = async ({ url, locals: { supabase } }) => {
 				}
 			}
 
+			console.log('success');
 			// ✅ Success → send them to `next`
 			throw redirect(303, next);
 		}
+
+		console.log(error);
 	}
 
 	// ❌ Failure → error page
