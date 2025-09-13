@@ -5,16 +5,28 @@ import type { EmailOtpType } from '@supabase/supabase-js';
 export const GET = async ({ url, locals: { supabase } }) => {
 	const token_hash = url.searchParams.get('token_hash') as string | null;
 	const type = url.searchParams.get('type') as EmailOtpType | null;
+	const code = url.searchParams.get('code');
 	const next = url.searchParams.get('next') || '/';
 
 	console.log('confirming');
 
+	if (code) {
+		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+		if (error) {
+			console.error('Error exchanging code:', error.message);
+			throw redirect(303, '/auth/error');
+		}
+
+		console.log('success (code exchange)');
+		throw redirect(303, next);
+	}
+
 	if (token_hash && type) {
-		// ✅ Verify OTP
+		// ✅ Handle legacy verifyOtp flow
 		const { error } = await supabase.auth.verifyOtp({ token_hash, type });
 
 		if (!error) {
-			// ✅ Get the user
 			const { data: userData, error: userError } = await supabase.auth.getUser();
 			if (userError || !userData.user) {
 				console.error('Could not fetch user after verifyOtp:', userError);
@@ -23,7 +35,6 @@ export const GET = async ({ url, locals: { supabase } }) => {
 
 			const userId = userData.user.id;
 
-			// ✅ Check if role already exists
 			const { data: existingRoles, error: checkError } = await supabase
 				.from('roles')
 				.select('role')
@@ -34,7 +45,6 @@ export const GET = async ({ url, locals: { supabase } }) => {
 				throw redirect(303, '/auth/error');
 			}
 
-			// ✅ Insert role if none exists
 			if (!existingRoles || existingRoles.length === 0) {
 				const { error: insertError } = await supabase
 					.from('roles')
@@ -46,14 +56,12 @@ export const GET = async ({ url, locals: { supabase } }) => {
 				}
 			}
 
-			console.log('success');
-			// ✅ Success → send them to `next`
+			console.log('success (verifyOtp)');
 			throw redirect(303, next);
 		}
 
 		console.log(error);
 	}
 
-	// ❌ Failure → error page
 	throw redirect(303, '/auth/error');
 };
