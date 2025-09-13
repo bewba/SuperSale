@@ -7,7 +7,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	try {
 		const { selectedDeal } = await request.json();
 
-		console.log(selectedDeal);
+		// console.log(selectedDeal);
 
 		let buyerId: string = '';
 
@@ -29,6 +29,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 					`buyer="${buyerId}" && seller="${selectedDeal.owner_id}" && product="${selectedDeal.id}"`
 				);
 			console.log('Chatroom exists:', existing.id);
+			console.log('Selected deal:', selectedDeal.id);
 			record = existing;
 		} catch (err: any) {
 			if (err.status === 404) {
