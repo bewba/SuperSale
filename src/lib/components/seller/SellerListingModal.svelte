@@ -200,8 +200,9 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6">
 	<div class="relative w-full max-w-3xl">
 		<div
-			class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 sm:p-8 shadow-xl"
+			class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 sm:p-6 shadow-xl"
 		>
+			<!-- Close button -->
 			<button
 				on:click={close}
 				class="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-800"
@@ -209,21 +210,22 @@
 				✕
 			</button>
 
-			<h2 class="text-xl sm:text-2xl font-bold mb-6">
+			<!-- Heading -->
+			<h2 class="text-lg sm:text-xl font-bold mb-4">
 				{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
 			</h2>
 
-			<form on:submit|preventDefault={handleSubmit} class="space-y-6">
+			<form on:submit|preventDefault={handleSubmit} class="space-y-5">
 				<!-- Image Upload -->
-				<div class="space-y-3">
-					<label for="" class="block text-sm sm:text-base font-semibold text-gray-700">
+				<div class="space-y-2">
+					<label for="" class="block text-sm font-semibold text-gray-700">
 						Upload Images (max 4)
 					</label>
 					<label
-						class="flex cursor-pointer min-h-[30vh] flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50 {imagePreviews.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}"
+						class="flex cursor-pointer min-h-[22vh] flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50 {imagePreviews.length >= 4 ? 'opacity-50 cursor-not-allowed' : ''}"
 					>
-						<ImageUp class="text-gray-500 mb-2 h-8 w-8" />
-						<span class="text-sm text-gray-600">
+						<ImageUp class="text-gray-500 mb-1 h-7 w-7" />
+						<span class="text-xs text-gray-600">
 							{imagePreviews.length >= 4
 								? 'Maximum images reached'
 								: 'Click/tap to upload or drag & drop'}
@@ -239,19 +241,19 @@
 					</label>
 
 					{#if imagePreviews.length > 0}
-						<div class="flex gap-3 overflow-x-auto pb-2">
+						<div class="flex gap-2 overflow-x-auto pb-1">
 							{#each imagePreviews as src, i}
-								<div class="group relative aspect-square w-28 sm:w-32 flex-shrink-0 rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-									<img {src} alt="Preview" class="h-full w-full object-cover rounded-lg" />
+								<div class="group relative aspect-square w-24 sm:w-28 flex-shrink-0 rounded-md border border-gray-200 shadow-sm overflow-hidden">
+									<img {src} alt="Preview" class="h-full w-full object-cover rounded-md" />
 									<button
 										type="button"
 										aria-label="delete-button"
-										class="absolute top-1 right-1 cursor-pointer rounded-full bg-black/60 p-1 text-white shadow hover:bg-red-600 transition z-10"
+										class="absolute top-1 right-1 cursor-pointer rounded-full bg-black/60 p-0.5 text-white shadow hover:bg-red-600 transition z-10"
 										on:click|stopPropagation={() => removeImage(i)}
 									>
-										<X class="h-4 w-4" />
+										<X class="h-3.5 w-3.5" />
 									</button>
-									<div class="absolute bottom-1 left-1 text-xs px-1 py-0.5 rounded text-white {i < existingImages.length ? 'bg-blue-600' : 'bg-green-600'}">
+									<div class="absolute bottom-1 left-1 text-[10px] px-1 rounded text-white {i < existingImages.length ? 'bg-blue-600' : 'bg-green-600'}">
 										{i < existingImages.length ? 'Existing' : 'New'}
 									</div>
 								</div>
@@ -261,32 +263,32 @@
 				</div>
 
 				<!-- Product Info -->
-				<div class="space-y-4">
+				<div class="space-y-3">
 					<div>
-						<label for="" class="block text-sm sm:text-base font-semibold">Listing title:</label>
+						<label for="" class="block text-sm font-semibold mb-0.5">Listing title:</label>
 						<input
 							type="text"
 							placeholder="Input listing title"
 							bind:value={productName}
 							required
-							class="w-full rounded-lg border p-2"
+							class="w-full rounded-md border p-2 text-sm"
 						/>
 					</div>
 
-					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<div>
-							<label for="" class="block text-sm sm:text-base font-semibold">Original Price:</label>
+							<label for="" class="block text-sm font-semibold mb-0.5">Original Price:</label>
 							<input
 								type="number"
 								placeholder="100.00"
 								bind:value={originalPrice}
 								min="1"
 								required
-								class="w-full rounded-lg border p-2"
+								class="w-full rounded-md border p-2 text-sm"
 							/>
 						</div>
 						<div>
-							<label for="" class="block text-sm sm:text-base font-semibold">Discount:</label>
+							<label for="" class="block text-sm font-semibold mb-0.5">Discount:</label>
 							<div class="relative">
 								<input
 									type="number"
@@ -294,16 +296,20 @@
 									max="100"
 									step="1"
 									bind:value={discountPercent}
-									class="w-full rounded-lg border p-2 pr-8"
+									class="w-full rounded-md border p-2 pr-7 text-sm"
 								/>
-								<span class="absolute inset-y-0 right-3 flex items-center text-gray-500">%</span>
+								<span class="absolute inset-y-0 right-2 flex items-center text-gray-500 text-xs">%</span>
+							</div>
+							<div class="mt-1 text-xs text-green-700">
+								Discounted Price: <span class="font-semibold">₱{discountPrice}</span>
 							</div>
 						</div>
 					</div>
 				</div>
 
+				<!-- Expiry -->
 				<div>
-					<label for="" class="block text-sm sm:text-base font-semibold mb-1">
+					<label for="" class="block text-sm font-semibold mb-0.5">
 						Deal expires in (hours):
 					</label>
 					<input
@@ -311,26 +317,27 @@
 						bind:value={expiresInHours}
 						required
 						enterkeyhint="done"
-						class="w-full rounded-lg border p-2"
+						class="w-full rounded-md border p-2 text-sm"
 						on:keydown={(e) => {
 							if (e.key === 'Enter') handleSubmit(e);
 						}}
 					/>
 				</div>
 
-				<div class="flex flex-col sm:flex-row gap-3 pt-2">
+				<!-- Actions -->
+				<div class="flex flex-col sm:flex-row gap-2 pt-2">
 					{#if mode === 'edit'}
 						<button
 							type="button"
 							on:click={() => dispatch('deleteListing', { deal })}
-							class="w-full cursor-pointer text-lg rounded-lg bg-red-500 px-4 py-2 text-white shadow-md transition hover:bg-red-600"
+							class="w-full cursor-pointer text-sm rounded-md bg-red-500 px-3 py-2 text-white shadow-sm transition hover:bg-red-600"
 						>
 							Delete
 						</button>
 					{/if}
 					<button
 						type="submit"
-						class="w-full cursor-pointer text-lg rounded-lg bg-green-600 px-4 py-2 text-white shadow-md transition hover:bg-green-700"
+						class="w-full cursor-pointer text-sm rounded-md bg-green-600 px-3 py-2 text-white shadow-sm transition hover:bg-green-700"
 					>
 						Save
 					</button>
@@ -339,6 +346,7 @@
 		</div>
 	</div>
 </div>
+
 
 <style>
 	.sr-only {
