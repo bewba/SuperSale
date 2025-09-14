@@ -3,7 +3,7 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const { storeName, address, pickup, delivery } = await request.json();
+		const { storeName, address, pickup, delivery, termsAccepted } = await request.json();
 
 		const userId = locals.user.id;
 		const sb = locals.supabase;
@@ -12,20 +12,37 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Store name and address are required' }, { status: 400 });
 		}
 
-		// TODO: Save this data to your DB (Supabase / Postgres / etc.)
-		// Example:
-		// await db.insert({ storeName, address, pickup, delivery });
+		// 🔍 Check if user already exists in roles
+		const { data: existingRole, error: selectError } = await sb
+			.from('roles')
+			.select('id')
+			.eq('userId', userId);
 
-		const { data, error } = await sb.from('roles').insert([
-			{
-				role: 'seller',
-				userId: userId,
-				store_name: storeName,
-				address,
-				pickup,
-				delivery
+		console.log(existingRole, selectError);
+
+		if (!existingRole || existingRole?.length > 0) {
+			console.log(existingRole);
+			return json({ error: 'User already has a role registered' }, { status: 400 });
+		} else {
+			// ✅ Insert new role if not exists
+
+			const { data, error } = await sb.from('roles').insert([
+				{
+					role: 'seller',
+					userId: userId,
+					store_name: storeName,
+					address,
+					pickup,
+					delivery,
+					terms_accepted: termsAccepted
+				}
+			]);
+
+			if (error) {
+				console.error('Insert error:', error);
+				return json({ error: 'Failed to register store' }, { status: 500 });
 			}
-		]);
+		}
 
 		return json({
 			success: true,
