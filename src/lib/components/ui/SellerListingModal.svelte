@@ -16,7 +16,7 @@
 
 	// form state
 	let productName = '';
-	let originalPrice: number = 0;
+	let originalPrice: number;
 	let discountPrice: number = 0;
 	let description = '';
 	let quantity: string = '1';
@@ -189,37 +189,38 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 sm:p-6">
 	<div class="relative w-full max-w-3xl">
 		<div
-			class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-4 sm:p-6 md:p-8 shadow-xl"
+			class="relative max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 sm:p-8 shadow-xl"
 		>
 			<!-- Close button -->
 			<button
 				on:click={close}
-				class="absolute top-3 right-3 sm:top-4 sm:right-4 cursor-pointer text-gray-500 hover:text-gray-800"
+				class="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-800"
 			>
 				✕
 			</button>
-			<h2 class="text-xl sm:text-2xl font-bold">
+
+			<h2 class="text-xl sm:text-2xl font-bold mb-6">
 				{mode === 'add' ? 'Add Product Listing' : 'Edit Product Listing'}
 			</h2>
 
 			<!-- Modal form -->
-			<form on:submit|preventDefault={handleSubmit} class="space-y-5 sm:space-y-6">
+			<form on:submit|preventDefault={handleSubmit} class="space-y-6">
 				<!-- Image Upload -->
-				<div class="space-y-3 mt-2">
-					<label for="" class="block text-sm sm:text-md font-semibold text-gray-700">
+				<div class="space-y-3">
+					<label for="" class="block text-sm sm:text-base font-semibold text-gray-700">
 						Upload Images (max 4)
-						<span class="text-sm sm:text-md font-extrabold text-red-600">*</span>
+						<span class="font-extrabold text-red-600">*</span>
 					</label>
-
 					<!-- Upload area -->
 					<label
-						class="flex cursor-pointer min-h-[30vh] flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-4 sm:p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
+						class="flex cursor-pointer min-h-[30vh] flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition hover:border-blue-400 hover:bg-blue-50"
 					>
-						<ImageUp class="text-gray-500 mb-2 h-6 w-6 sm:h-8 sm:w-8" />
-						<span class="text-xs sm:text-sm text-gray-600">Click/tap to upload or drag & drop</span>
+						<ImageUp class="text-gray-500 mb-2 h-8 w-8" />
+						<span class="text-sm text-gray-600">Click/tap to upload or drag & drop</span>
 						<input
 							type="file"
 							accept="image/*"
+							required
 							multiple
 							class="sr-only"
 							on:change={handleImageUpload}
@@ -251,104 +252,79 @@
 					{/if}
 				</div>
 
-
-				<!-- <div>
-					<label class="block text-sm font-medium">Product Name</label>
-					<input
-						type="text"
-						bind:value={productName}
-						required
-						class="w-full rounded-lg border p-2"
-					/>
-				</div> -->
-
-				<!-- <div>
-					<label class="block text-sm font-medium">Description</label>
-					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
-				</div> -->
-
-				<div>
-					<!-- <div>
-						<label class="block text-sm font-medium">Original Price</label>
+				<!-- Product Info -->
+				<div class="space-y-4">
+					<div>
+						<label for="" class="block text-sm sm:text-base font-semibold">Listing title:</label>
 						<input
-							type="number"
-							bind:value={originalPrice}
+							type="text"
+							placeholder="Input lisitng title"
+							bind:value={productName}
 							required
 							class="w-full rounded-lg border p-2"
 						/>
-					</div> -->
-					<div>
-						<label for="" class="block text-md font-semibold">Discount</label>
-						<div class="relative">
+					</div>
+
+					<!-- Prices side by side -->
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div>
+							<label for="" class="block text-sm sm:text-base font-semibold">Original Price:</label>
 							<input
 								type="number"
-								min="1"
-								max="100"
-								step="1"
-								bind:value={discountPercent}
-								class="border rounded-lg w-full p-2 pr-8"
+								placeholder="100.00"
+								bind:value={originalPrice}
+								min="1"	
+								required
+								class="w-full rounded-lg border p-2"
 							/>
-							<span class="absolute inset-y-0 right-3 flex items-center text-gray-500">%</span>
 						</div>
-						<!-- <div class="mt-1 flex justify-between text-sm">
-							<span class="text-gray-600">{discountPercent}% off</span>
-							{#if discountPrice > 0}
-								<span class="font-semibold text-green-600">
-									Final Price: ₱{discountPrice}
-								</span>
-							{/if}
-						</div> -->
+						<div>
+							<label for="" class="block text-sm sm:text-base font-semibold">Discount:</label>
+							<div class="relative">
+								<input
+									type="number"
+									min="1"
+									max="100"
+									step="1"
+									bind:value={discountPercent}
+									class="w-full rounded-lg border p-2 pr-8"
+								/>
+								<span class="absolute inset-y-0 right-3 flex items-center text-gray-500">%</span>
+							</div>
+						</div>
 					</div>
 				</div>
 
-				<!-- <div>
-					<label class="block text-sm font-medium">Quantity</label>
+				<!-- Expiry -->
+				<div>
+					<label for="" class="block text-sm sm:text-base font-semibold mb-1">
+						Deal expires in (hours):
+					</label>
 					<input
 						type="number"
-						bind:value={quantity}
+						bind:value={expiresInHours}
 						required
+						enterkeyhint="done"
 						class="w-full rounded-lg border p-2"
+						on:keydown={(e) => {
+							if (e.key === 'Enter') handleSubmit(e);
+						}}
 					/>
-				</div> -->
+				</div>
 
-				<!-- Expiry date + time side by side -->
-				<div>
-					<!-- <div>
-						<label class="block text-sm font-medium">Expiry Date</label>
-						<input
-							type="date"
-							bind:value={expiryDate}
-							required
-							class="w-full rounded-lg border p-2"
-						/>
-					</div> -->
-					<div>
-						<label for="" class="block text-md font-semibold mb-1">Deal expires in (hours):</label>
-						<input
-							type="number"
-							bind:value={expiresInHours}
-							required
-							enterkeyhint="done"	
-							class="w-full rounded-lg border p-2"
-							on:keydown={(e) => {
-								if (e.key === 'Enter') handleSubmit(e);
-							}}
-						/>
-					</div>
-				</div>	
-
-				<div class="flex gap-3">
-					{#if mode === 'edit'}	
+				<!-- Action buttons -->
+				<div class="flex flex-col sm:flex-row gap-3 pt-2">
+					{#if mode === 'edit'}
 						<button
 							on:click={() => dispatch('deleteListing', { deal })}
-							class="cursor-pointer w-full text-2xl rounded-lg bg-red-500 px-4 py-2 text-white shadow-md transition hover:bg-red-600"
+							class="w-full sm:w-1/3 text-lg rounded-lg bg-red-500 px-4 py-2 text-white shadow-md transition hover:bg-red-600"
 						>
 							Delete
 						</button>
 					{/if}
 					<button
 						type="submit"
-						class="cursor-pointer text-2xl rounded-lg bg-green-600 px-4 py-2 text-white w-full"
+						class="w-full text-lg rounded-lg bg-green-600 px-4 py-2 text-white shadow-md transition hover:bg-green-700"
 					>
 						Save
 					</button>
@@ -371,3 +347,36 @@
 		border-width: 0;
 	}
 </style>
+
+	<!-- <div class="mt-1 flex justify-between text-sm">
+							<span class="text-gray-600">{discountPercent}% off</span>
+							{#if discountPrice > 0}
+								<span class="font-semibold text-green-600">
+									Final Price: ₱{discountPrice}
+								</span>
+							{/if}
+						</div> -->
+					<!-- <div>
+						<label class="block text-sm font-medium">Expiry Date</label>
+						<input
+							type="date"
+							bind:value={expiryDate}
+							required
+							class="w-full rounded-lg border p-2"
+						/>
+					</div> -->
+
+				<!-- <div>
+					<label class="block text-sm font-medium">Quantity</label>
+					<input
+						type="number"
+						bind:value={quantity}
+						required
+						class="w-full rounded-lg border p-2"
+					/>
+				</div> -->
+
+				<!-- <div>
+					<label class="block text-sm font-medium">Description</label>
+					<textarea bind:value={description} class="w-full rounded-lg border p-2"></textarea>
+				</div> -->
