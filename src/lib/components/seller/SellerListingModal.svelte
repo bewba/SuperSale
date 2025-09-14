@@ -152,6 +152,7 @@
 	$: if (deal) {
 		productName = deal.title;
 		description = deal.reason;
+		originalPrice = deal.original_price
 		quantity = String(deal.quantity);
 		category = deal.reason_category;
 		contactInfo = deal.contact_information;
