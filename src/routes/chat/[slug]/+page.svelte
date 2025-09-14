@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { ArrowLeft, ShoppingCart } from '@lucide/svelte';
 	import { onMount, tick } from 'svelte';
-	import ChatDeal from '$lib/components/chat/ChatDeal.svelte';	
+	import ChatDeal from '$lib/components/chat/ChatDeal.svelte';
 	import {
 		loadMessages,
 		subscribeToMessages,
@@ -12,7 +12,7 @@
 		type SystemMessage
 	} from '$lib/utils/chat';
 	import { getPb, getPbBackground } from '$lib/pocketbase/pb.client';
-	import type { Deal } from '$lib/types/types.js';	
+	import type { Deal } from '$lib/types/types.js';
 
 	let { data } = $props();
 	const slug = data.slug;
@@ -21,7 +21,7 @@
 	const deal = data.deal;
 	let selectedDeal = $state<Deal>({} as Deal);
 	let showDealModal = $state(false);
-	
+
 	let messages = $state<(Message | SystemMessage)[]>([]);
 	let newMessage = $state('');
 	let hasPbAccount = $state(false);
@@ -43,6 +43,90 @@
 
 	// ADDED: Variable to store the timer reference at module level
 	let presenceTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// ADDED: Track which messages have been marked as seen to avoid duplicate updates
+	let seenMessageIds = new Set<string>();
+
+	// ADDED: Intersection Observer for tracking message visibility
+	let messageObserver: IntersectionObserver | null = null;
+
+	// Helper function to mark messages as seen
+	async function markMessagesAsSeen(messageIds: string[]) {
+		if (messageIds.length === 0) return;
+
+		try {
+			// Filter out messages that have already been marked as seen
+			const unseenMessageIds = messageIds.filter((id) => !seenMessageIds.has(id));
+
+			if (unseenMessageIds.length === 0) return;
+
+			// Update each message in the messages table
+			const updatePromises = unseenMessageIds.map(async (messageId) => {
+				try {
+					await pbBackground.collection('messages').update(messageId, {
+						is_seen: true
+					});
+					seenMessageIds.add(messageId);
+					console.log(`Marked message ${messageId} as seen`);
+				} catch (err) {
+					console.error(`Failed to mark message ${messageId} as seen:`, err);
+				}
+			});
+
+			await Promise.all(updatePromises);
+		} catch (err) {
+			console.error('Error marking messages as seen:', err);
+		}
+	}
+
+	// ADDED: Function to handle message visibility
+	function handleMessageVisibility(entries: IntersectionObserverEntry[]) {
+		const visibleMessageIds: string[] = [];
+
+		entries.forEach((entry) => {
+			if (entry.isIntersecting) {
+				const messageElement = entry.target as HTMLElement;
+				const messageId = messageElement.dataset.messageId;
+				const senderId = messageElement.dataset.senderId;
+
+				// Only mark messages from other users as seen (not our own messages)
+				if (messageId && senderId && senderId !== user.id && !seenMessageIds.has(messageId)) {
+					visibleMessageIds.push(messageId);
+				}
+			}
+		});
+
+		if (visibleMessageIds.length > 0) {
+			// Debounce the API calls - wait a bit before marking as seen
+			setTimeout(() => {
+				markMessagesAsSeen(visibleMessageIds);
+			}, 500);
+		}
+	}
+
+	// ADDED: Set up intersection observer
+	function setupMessageObserver() {
+		if (messageObserver) {
+			messageObserver.disconnect();
+		}
+
+		messageObserver = new IntersectionObserver(handleMessageVisibility, {
+			root: messagesContainer,
+			rootMargin: '0px',
+			threshold: 0.5 // Message is considered seen when 50% visible
+		});
+	}
+
+	// ADDED: Observe message elements
+	function observeMessages() {
+		if (!messageObserver) return;
+
+		// Observe all message elements
+		const messageElements = messagesContainer?.querySelectorAll('[data-message-id]');
+		messageElements?.forEach((element) => {
+			messageObserver!.observe(element);
+		});
+	}
 
 	// Helper function to check if other participant has email in PocketBase
 	async function checkOtherParticipantEmail(otherParticipantId: string): Promise<boolean> {
@@ -141,14 +225,25 @@
 		let unsub: () => void;
 		let unsubPresence: () => void;
 
+		// Setup intersection observer
+		setupMessageObserver();
+
 		// Load messages
 		loadMessages(slug).then((msgs) => {
 			messages = msgs;
+			// Set up observer after messages are loaded
+			tick().then(() => {
+				observeMessages();
+			});
 		});
 
 		// Subscribe to messages
 		subscribeToMessages(slug, (m) => {
 			messages = [...messages, m];
+			// Re-observe messages when new ones arrive
+			tick().then(() => {
+				observeMessages();
+			});
 		}).then((sub) => {
 			unsub = sub;
 		});
@@ -228,6 +323,7 @@
 		return () => {
 			unsub?.();
 			unsubPresence?.();
+			messageObserver?.disconnect();
 			leaveChatroom(slug, user.id);
 			if (presenceTimer) clearTimeout(presenceTimer);
 		};
@@ -283,6 +379,8 @@
 		const _len = messages.length;
 		tick().then(() => {
 			bottom?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+			// Re-observe messages after scrolling
+			observeMessages();
 		});
 	});
 
@@ -294,7 +392,6 @@
 			Object.assign(selectedDeal, product);
 		}
 	});
-
 </script>
 
 <div class="chat flex h-[100dvh] flex-col bg-gray-50">
@@ -330,38 +427,42 @@
 	</div>
 
 	<button
-	  class="cursor-pointer flex mx-auto mt-2 w-fit rounded-xl text-2xl bg-orange-500 px-4 py-3 text-white shadow hover:bg-orange-600"
-	  on:click={() => (showDealModal = true)}
+		class="mx-auto mt-2 flex w-fit cursor-pointer rounded-xl bg-orange-500 px-4 py-3 text-2xl text-white shadow hover:bg-orange-600"
+		on:click={() => (showDealModal = true)}
 	>
-		<ShoppingCart />  
+		<ShoppingCart />
 		<span class="ml-2">See product photos</span>
 	</button>
 
 	<!-- Messages area -->
-	<div
-		class="messages flex-1 overflow-y-auto p-3 sm:p-4"
-		bind:this={messagesContainer}
-	>
-		<div class="flex flex-col justify-end min-h-full space-y-3">
-			{#each messages as m}
+	<div class="messages flex-1 overflow-y-auto p-3 sm:p-4" bind:this={messagesContainer}>
+		<div class="flex min-h-full flex-col justify-end space-y-3">
+			{#each messages as m, index}
 				{#if m.isSystem}
 					<div class="flex justify-center">
-						<p class="text-sm italic text-gray-500">{m.text}</p>
+						<p class="text-sm text-gray-500 italic">{m.text}</p>
 					</div>
 				{:else}
-					<div class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}">
+					<!-- UPDATED: Added data attributes for intersection observer -->
+					<div
+						class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}"
+						data-message-id={m.id}
+						data-sender-id={m.sender_id}
+					>
 						<div
 							class="max-w-[80%] rounded-lg px-3 py-2 sm:max-w-[70%] sm:px-4 sm:py-2
-								{m.sender_id === user.id
-									? 'bg-orange-400 text-white'
-									: 'bg-gray-200 text-gray-800'}"
+								{m.sender_id === user.id ? 'bg-orange-400 text-white' : 'bg-gray-200 text-gray-800'}"
 						>
 							{#if m.sender_id != user.id}
-								<p class="mb-1 text-md font-semibold underline text-gray-700 sm:mb-1.5">
+								<p class="text-md mb-1 font-semibold text-gray-700 underline sm:mb-1.5">
 									{m.sender_name}
 								</p>
 							{/if}
-							<p class="break-words text-2xl">{m.text}</p>
+							<p class="text-2xl break-words">{m.text}</p>
+							<!-- OPTIONAL: Show seen indicator for your own messages -->
+							{#if m.sender_id === user.id && m.is_seen}
+								<p class="mt-1 text-right text-xs text-gray-300">✓ Seen</p>
+							{/if}
 						</div>
 					</div>
 				{/if}
@@ -370,7 +471,6 @@
 			<div bind:this={bottom} aria-hidden="true"></div>
 		</div>
 	</div>
-
 
 	<!-- Input area -->
 	<form
@@ -423,8 +523,5 @@
 {/if}
 
 {#if showDealModal}
-	<ChatDeal
-		selectedDeal={selectedDeal}
-		on:close={() => (showDealModal = false)}
-	/>
+	<ChatDeal {selectedDeal} on:close={() => (showDealModal = false)} />
 {/if}
