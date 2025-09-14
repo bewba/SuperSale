@@ -21,28 +21,28 @@ export const GET = async ({ url, locals: { supabase } }) => {
 				throw redirect(303, '/auth/error');
 			}
 
-			const userId = userData.user.id;
+			// const userId = userData.user.id;
 
-			const { data: existingRoles, error: checkError } = await supabase
-				.from('roles')
-				.select('role')
-				.eq('userId', userId);
+			// const { data: existingRoles, error: checkError } = await supabase
+			// 	.from('roles')
+			// 	.select('role')
+			// 	.eq('userId', userId);
 
-			if (checkError) {
-				console.error('Error checking roles:', checkError);
-				throw redirect(303, '/auth/error');
-			}
+			// if (checkError) {
+			// 	console.error('Error checking roles:', checkError);
+			// 	throw redirect(303, '/auth/error');
+			// }
 
-			if (!existingRoles || existingRoles.length === 0) {
-				const { error: insertError } = await supabase
-					.from('roles')
-					.insert({ userId, role: 'seller' });
+			// if (!existingRoles || existingRoles.length === 0) {
+			// 	const { error: insertError } = await supabase
+			// 		.from('roles')
+			// 		.insert({ userId, role: 'seller' });
 
-				if (insertError) {
-					console.error('Error inserting role:', insertError);
-					throw redirect(303, '/auth/error');
-				}
-			}
+			// 	if (insertError) {
+			// 		console.error('Error inserting role:', insertError);
+			// 		throw redirect(303, '/auth/error');
+			// 	}
+			// }
 
 			console.log('success (verifyOtp)');
 			throw redirect(303, next);
