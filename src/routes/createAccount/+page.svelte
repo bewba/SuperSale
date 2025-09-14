@@ -1,36 +1,49 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 
 	let storeName = '';
 	let address = '';
 	let pickup = true;
 	let delivery = true;
+	let loading = false;
+	let errorMessage;
+
+	function verifyStoreName(storeName: string) {
+		if (!storeName.trim()) {
+			errorMessage = 'Store name is required';
+			return false;
+		}
+
+		errorMessage = '';
+		return true;
+	}
 
 	async function handleSignup() {
+		if (!verifyStoreName(storeName)) {
+			return;
+		}
+
+		loading = true;
 		try {
-			const res = await fetch('/api/stores', {
+			const res = await fetch('/api/createAccount', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ storeName, address, pickup, delivery })
 			});
 
 			const data = await res.json();
-			console.log('API response:', data);
 
 			if (data.success) {
-				goto('/dashboard'); // redirect after success
+				goto('/protected/seller');
 			} else {
 				alert(data.error || 'Failed to register store');
 			}
 		} catch (err) {
 			console.error(err);
 			alert('Something went wrong');
+		} finally {
+			loading = false;
 		}
-	}
-
-	function handleNotSeller() {
-		console.log('Not a seller clicked');
-		goto('/');
 	}
 </script>
 
@@ -159,9 +172,34 @@
 					<div class="space-y-4 lg:space-y-3">
 						<button
 							on:click={handleSignup}
-							class="w-full cursor-pointer rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 lg:py-4 lg:text-base"
+							class="flex w-full items-center justify-center rounded-xl bg-gray-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800 lg:py-4 lg:text-base"
+							disabled={loading}
 						>
-							Create Store Account
+							{#if loading}
+								<!-- Spinner -->
+								<svg
+									class="h-5 w-5 animate-spin text-white"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+									></path>
+								</svg>
+							{:else}
+								Create Store Account
+							{/if}
 						</button>
 						<button
 							on:click={handleNotSeller}

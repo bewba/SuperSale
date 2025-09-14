@@ -5,8 +5,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const { storeName, address, pickup, delivery } = await request.json();
 
-        const userId = locals.user.id
-        const sb = locals.supabase
+		const userId = locals.user.id;
+		const sb = locals.supabase;
 
 		if (!storeName || !address) {
 			return json({ error: 'Store name and address are required' }, { status: 400 });
@@ -16,14 +16,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// Example:
 		// await db.insert({ storeName, address, pickup, delivery });
 
-        const { data, error } = await sb.from('roles').insert([
-            role: "seller",
-            userId,
-            store_name: storeName,
-            address,
-            pickup,
-            delivery
-        ])
+		const { data, error } = await sb.from('roles').insert([
+			{
+				role: 'seller',
+				userId: userId,
+				store_name: storeName,
+				address,
+				pickup,
+				delivery
+			}
+		]);
 
 		return json({
 			success: true,
