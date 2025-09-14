@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Orders from '$lib/components/seller/Orders.svelte';
-	import SellerListingModal from '$lib/components/ui/SellerListingModal.svelte';
+	import SellerListingModal from '$lib/components/seller/SellerListingModal.svelte';
 	import AcceptedOrders from '$lib/components/seller/AcceptedOrders.svelte';
 	import Listings from '$lib/components/seller/Listings.svelte';
 	import type { Deal, ChatRoom, Enriched } from '$lib/types/types';
