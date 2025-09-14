@@ -123,7 +123,7 @@
 							<button
 								on:click={() => (pickup = !pickup)}
 								class="relative inline-flex h-5 w-10 sm:h-6 sm:w-11 lg:h-7 lg:w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {pickup
-									? 'bg-gray-900'
+									? 'bg-[#0060a9]'
 									: 'bg-gray-300'}"
 								role="switch"
 								aria-checked={pickup}
@@ -153,7 +153,7 @@
 							<button
 								on:click={() => (delivery = !delivery)}
 								class="relative inline-flex h-5 w-10 sm:h-6 sm:w-11 lg:h-7 lg:w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {delivery
-									? 'bg-gray-900'
+									? 'bg-[#0060a9]'
 									: 'bg-gray-300'}"
 								role="switch"
 								aria-checked={delivery}
@@ -206,7 +206,7 @@
 					<div class="space-y-3 sm:space-y-4">
 						<button
 							on:click={handleSignup}
-							class="flex w-full cursor-pointer items-center justify-center rounded-xl bg-[#0060a9] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400 sm:px-6 sm:py-3 sm:text-base lg:py-4"
+							class="flex w-full cursor-pointer items-center justify-center rounded-xl bg-[#0060a9] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#0060a1] disabled:cursor-not-allowed disabled:bg-gray-400 sm:px-6 sm:py-3 sm:text-base lg:py-4"
 							disabled={loading}
 						>
 							{#if loading}
