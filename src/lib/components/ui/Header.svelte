@@ -23,9 +23,9 @@
 	}
 </script>
 
+<!-- class:hidden={!scrolled} -->
 <header
 	class="sticky top-0 z-50 border-b border-gray-100 bg-[#eee] shadow-md transition-transform duration-300"
-	class:hidden={!scrolled}
 >
 	<div class="mx-auto flex max-w-7xl items-center justify-between p-4">
 		<!-- Logo  -->
