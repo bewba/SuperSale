@@ -6,6 +6,7 @@
 	import SellerCarousel from '$lib/components/ui/SellerCarousel.svelte';
 	import CheckoutModal from '$lib/components/ui/CheckoutModal/CheckoutModal.svelte';
 	import type { Deal, ProductResponse } from '$lib/types/types';
+	import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getPb } from '$lib/pocketbase/pb.client';
@@ -192,6 +193,15 @@
 
 	<!-- Brands -->
 	<!-- <SellerCarousel {sellers} /> -->
+
+	<!-- Active Listings -->
+	<ActiveListings
+		{deals}
+		{hasMore}
+		{loading}
+		on:select={(e) => openCheckout(e.detail)}
+		on:loadMore={() => loadMore()}
+	/>
 
 	{#if openCheckoutModal}
 		<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
