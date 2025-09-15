@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign Up - UnliPassion</title>
+	<title>Sign Up - SuperSale.ph</title>
 </svelte:head>
 
 
