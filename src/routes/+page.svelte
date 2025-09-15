@@ -6,20 +6,94 @@
 	import SellerCarousel from '$lib/components/ui/SellerCarousel.svelte';
 	import CheckoutModal from '$lib/components/ui/CheckoutModal/CheckoutModal.svelte';
 	import type { Deal, ProductResponse } from '$lib/types/types';
-	import { onMount } from 'svelte';
-  import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
+	import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
+	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
+	import { getPb } from '$lib/pocketbase/pb.client';
 	// import type { Seller } from '$lib/types/types';
 
 	import { goto } from '$app/navigation';
 
-	let openCheckoutModal = false;
+	export let data;
+	const user = data?.user;
 
+	let openCheckoutModal = false;
 	let selectedDeal: any | null = null;
 	let deals: Deal[] = [];
 	let offset = 0;
 	const limit = 10;
 	let hasMore = true;
 	let loading = false;
+
+	// Notification state
+	let hasUnseenMessages = false;
+	let pb: any;
+	let unsubscribe: (() => void) | null = null;
+
+	type Chat = {
+		id: string;
+		productImage: string;
+		productName: string;
+		contactPerson: string;
+		lastMessageTime: string;
+		lastMessage: string;
+		seen_by: Record<string, string>;
+	};
+
+	function computeUnseen(chat: Chat): boolean {
+		const seenTime = chat.seen_by?.[user.id];
+		if (!seenTime) return true; // never seen
+
+		const lastSeen = new Date(seenTime);
+		const lastMessage = new Date(chat.lastMessageTime);
+
+		return lastMessage > lastSeen;
+	}
+
+	async function checkUnseenMessages() {
+		try {
+			const res = await fetch(`/api/loadActiveChats?page=1&perPage=50`); // Get more chats to check
+			if (!res.ok) return;
+
+			const data = await res.json();
+			const chats = data.activeChats || [];
+
+			// Check if any chat has unseen messages
+			hasUnseenMessages = chats.some((chat: Chat) => computeUnseen(chat));
+			console.log('Has unseen messages:', hasUnseenMessages);
+		} catch (err) {
+			console.error('Error checking unseen messages:', err);
+		}
+	}
+
+	async function setupRealtimeSubscription() {
+		if (!browser || !user?.id) return;
+
+		try {
+			pb = getPb();
+			let userId = user.id;
+
+			// Subscribe to chat_rooms collection changes
+			unsubscribe = await pb.collection('chat_rooms').subscribe('*', async (e) => {
+				const { action, record } = e;
+
+				// Only handle changes for rooms where current user is buyer or seller
+				if (record.buyer === userId || record.seller === userId) {
+					if (action === 'create' || action === 'update') {
+						// Check for unseen messages whenever there's a change
+						await checkUnseenMessages();
+					} else if (action === 'delete') {
+						// Recheck unseen messages after deletion
+						await checkUnseenMessages();
+					}
+				}
+			});
+
+			console.log('Subscribed to chat_rooms collection for notifications');
+		} catch (err) {
+			console.error('Error setting up real-time subscription:', err);
+		}
+	}
 
 	function openCheckout(event: CustomEvent) {
 		selectedDeal = event;
@@ -34,7 +108,7 @@
 	}
 
 	function handleFloatingChat() {
-		goto('/chat');
+		goto('/chatRooms');
 	}
 
 	async function handleChat(event: CustomEvent) {
@@ -84,6 +158,20 @@
 
 	onMount(async () => {
 		await loadMore(); // load first batch
+
+		// Check for unseen messages on page load
+		if (user?.id) {
+			await checkUnseenMessages();
+			await setupRealtimeSubscription();
+		}
+	});
+
+	// Cleanup subscription on destroy
+	onDestroy(() => {
+		if (unsubscribe) {
+			unsubscribe();
+			console.log('Unsubscribed from chat_rooms collection');
+		}
 	});
 </script>
 
@@ -135,32 +223,37 @@
     </div>
   {/if}
 
-  <!-- Floating Chat Button -->
-  <button 
-    class="floating-chat-btn" 
-    on:click={handleFloatingChat} 
-    aria-label="Open chat"
-  >
-    <!-- Chat Icon SVG -->
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      class="chat-icon"
-    >
-      <path
-        d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H6L10 22L14 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
-        fill="currentColor"
-      />
-      <circle cx="8" cy="10" r="1" fill="white" />
-      <circle cx="12" cy="10" r="1" fill="white" />
-      <circle cx="16" cy="10" r="1" fill="white" />
-    </svg>
-    <!-- Notification dot -->
-    <span class="notification-dot"></span>
-  </button>
+	<button
+		class="floating-chat-btn relative flex h-36 w-36 items-center justify-center rounded-full shadow-lg"
+		on:click={handleFloatingChat}
+		aria-label="Open chat"
+		style="background: linear-gradient(135deg, #FFA500, #FF7F00);"
+	>
+		<!-- Chat Icon SVG -->
+		<svg
+			width="48"
+			height="48"
+			viewBox="0 0 24 24"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			class="chat-icon text-white"
+		>
+			<path
+				d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H6L10 22L14 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
+				fill="currentColor"
+			/>
+			<circle cx="8" cy="10" r="1" fill="white" />
+			<circle cx="12" cy="10" r="1" fill="white" />
+			<circle cx="16" cy="10" r="1" fill="white" />
+		</svg>
+
+		<!-- Conditional Notification dot - only show when there are unseen messages -->
+		{#if hasUnseenMessages}
+			<span
+				class="notification-dot absolute top-1 right-1 h-4 w-4 rounded-full border-2 border-white bg-red-500"
+			></span>
+		{/if}
+	</button>
 
   <!-- Footer -->
   <Footer />
@@ -171,8 +264,8 @@
 		position: fixed;
 		bottom: 20px;
 		right: 20px;
-		width: 60px;
-		height: 60px;
+		width: 96px;
+		height: 96px;
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		border: none;
 		border-radius: 50%;
@@ -206,8 +299,8 @@
 
 	.notification-dot {
 		position: absolute;
-		top: 8px;
-		right: 8px;
+		top: 20px;
+		right: 20px;
 		width: 12px;
 		height: 12px;
 		background: #ff4444;
@@ -234,8 +327,8 @@
 	/* Mobile responsive adjustments */
 	@media (max-width: 768px) {
 		.floating-chat-btn {
-			width: 56px;
-			height: 56px;
+			width: 72px;
+			height: 72px;
 			bottom: 16px;
 			right: 16px;
 		}
@@ -248,22 +341,22 @@
 		.notification-dot {
 			width: 10px;
 			height: 10px;
-			top: 6px;
-			right: 6px;
+			top: 12px;
+			right: 12px;
 		}
 	}
 
 	@media (max-width: 480px) {
 		.floating-chat-btn {
-			width: 52px;
-			height: 52px;
+			width: 60px;
+			height: 60px;
 			bottom: 12px;
 			right: 12px;
 		}
 
 		.chat-icon {
-			width: 18px;
-			height: 18px;
+			width: 32px;
+			height: 32px;
 		}
 	}
 

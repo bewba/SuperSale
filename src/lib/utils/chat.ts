@@ -58,9 +58,7 @@ export async function sendMessage(
 	text: string,
 	user?: { id: string; email?: string }
 ) {
-	console.log(user);
 	const pb = getPb();
-	console.log(user);
 	const payload = {
 		text,
 		sender_id: user?.id ?? null,
