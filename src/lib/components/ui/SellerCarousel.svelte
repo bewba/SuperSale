@@ -70,7 +70,7 @@
 
 
 <div class="m-2" id="brands">
-  <h1 class="mb-2 text-4xl font-bold">Featured brands:</h1>
+  <h1 class="mb-3 text-4xl font-bold">Featured brands:</h1>
 
   <!-- Slider container -->
   <div class="relative">

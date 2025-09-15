@@ -26,7 +26,7 @@
 
 <div
   class="relative h-48 w-48 sm:h-56 sm:w-56 md:h-64 md:w-64 lg:h-72 lg:w-72 xl:h-80 xl:w-80
-         rounded-full overflow-hidden bg-cover bg-center shadow-2xl shadow-black/40"
+         rounded-full overflow-hidden bg-cover bg-center"
   style="background-image: url({seller.logo ?? "/logo.svg"})"
 >
   <!-- Gradient overlay -->
