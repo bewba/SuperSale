@@ -58,6 +58,7 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 					seller: selectedDeal.owner_id,
 					seller_name: sellerName,
 					product: selectedDeal.id,
+					product_name: selectedDeal.title,
 					image_url: selectedDeal.image_list[0]
 				});
 				record = existing;

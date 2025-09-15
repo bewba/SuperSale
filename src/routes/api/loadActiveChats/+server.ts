@@ -10,47 +10,95 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 		// get pagination params
 		const page = parseInt(url.searchParams.get('page') || '1');
 		const perPage = parseInt(url.searchParams.get('perPage') || '10');
+		const chatId = url.searchParams.get('chatId'); // For single chat updates
 
-		// fetch paginated chat rooms for this user
-		const { items: chatRooms, totalItems } = await pb
-			.collection('chat_rooms')
-			.getList(page, perPage, {
+		let chatRooms, totalItems;
+
+		if (chatId) {
+			// Fetch single chat room for real-time updates
+			try {
+				const room = await pb.collection('chat_rooms').getOne(chatId, {
+					filter: `buyer='${userId}' || seller='${userId}'`
+				});
+				chatRooms = [room];
+				totalItems = 1;
+			} catch (err) {
+				// Chat room not found or user doesn't have access
+				return new Response(JSON.stringify({ activeChats: [], hasMore: false }), {
+					headers: { 'Content-Type': 'application/json' }
+				});
+			}
+		} else {
+			// Fetch paginated chat rooms for this user
+			const result = await pb.collection('chat_rooms').getList(page, perPage, {
 				filter: `buyer='${userId}' || seller='${userId}'`,
 				sort: '-updated'
 			});
+			chatRooms = result.items;
+			totalItems = result.totalItems;
+		}
 
 		const chats = [];
 
 		for (const room of chatRooms) {
-			// last message
-			const { items: lastMessages } = await pb.collection('messages').getList(1, 1, {
-				filter: `chatroom_id='${room.id}'`,
-				sort: '-created'
-			});
-			const lastMessage = lastMessages[0];
+			// Get the other person's name based on stored names in chat_rooms
+			let contactPersonName;
+			let contactPersonId;
 
-			// unseen messages for this user
+			if (room.buyer === userId) {
+				contactPersonName = room.seller_name || room.seller;
+				contactPersonId = room.seller;
+			} else {
+				contactPersonName = room.buyer_name || room.buyer;
+				contactPersonId = room.buyer;
+			}
+
+			// Use stored last message info from chat_rooms if available
+			let lastMessage = room.last_message || '';
+			let lastMessageTime = room.last_message_sent || room.updated;
+
+			// If no stored last message, fetch from messages collection
+			if (!lastMessage) {
+				const { items: lastMessages } = await pb.collection('messages').getList(1, 1, {
+					filter: `chatroom_id='${room.id}'`,
+					sort: '-created'
+				});
+				const lastMessageRecord = lastMessages[0];
+				lastMessage = lastMessageRecord?.text || '';
+				lastMessageTime = lastMessageRecord?.created || room.updated;
+			}
+
+			// Check for unseen messages
 			const { total: unseenTotal } = await pb.collection('messages').getList(1, 1, {
 				filter: `chatroom_id='${room.id}' && sender_id!='${userId}' && is_seen=false`
 			});
 
 			chats.push({
 				id: room.id,
-				productImage: room.product,
+				productImage: room.image_url || '/placeholder-image.jpg',
 				productName: room.product,
-				contactPerson: room.buyer === userId ? room.seller : room.buyer,
-				lastMessageTime: lastMessage?.created || room.updated,
-				lastMessage: lastMessage?.text || '',
-				hasUnseenMessages: unseenTotal > 0
+				contactPerson: contactPersonName,
+				contactPersonId: contactPersonId,
+				lastMessageTime: lastMessageTime,
+				lastMessage: lastMessage,
+				hasUnseenMessages: unseenTotal > 0,
+				buyer: room.buyer,
+				seller: room.seller,
+				seen_by: room.seen_by
 			});
 		}
 
-		console.log(chats);
+		// Sort chats by last message time (most recent first)
+		chats.sort(
+			(a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()
+		);
+
+		console.log(`Loaded ${chats.length} chats for user ${userId}`);
 
 		return new Response(
 			JSON.stringify({
 				activeChats: chats,
-				hasMore: page * perPage < totalItems
+				hasMore: !chatId && page * perPage < totalItems
 			}),
 			{ headers: { 'Content-Type': 'application/json' } }
 		);
