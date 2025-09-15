@@ -8,8 +8,6 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 		user = { id: cookies.get('fingerprint') };
 	}
 
-	console.log(user);
-
 	return {
 		user
 	};
