@@ -155,9 +155,6 @@
   import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
 	// import type { Seller } from '$lib/types/types';
 
-	// TODO: RETRIVE SELLERS FROM THE DATABASE
-	// let sellers: Seller[] = []
-	import { sellers } from '$lib/data/sellers';
 	import { goto } from '$app/navigation';
 
 	let openCheckoutModal = false;
@@ -252,7 +249,7 @@
 	/>
 
 	<!-- Brands -->
-	<!-- <SellerCarousel {sellers} /> -->
+	<SellerCarousel />
 
   <!-- Active Listings -->
   <ActiveListings

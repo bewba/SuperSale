@@ -1,18 +1,56 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import SellerCard from "$lib/components/SellerCard.svelte";
   import { ChevronRight, ChevronLeft } from "@lucide/svelte";
 
-  let { sellers } = $props();
   let currentIndex = $state(0);
 
+  let sellers: any[] = $state([]);
+  let loadingSellers = true;
+  let sellersError: string | null = null;
+  let currentPage = 1;
+  let hasMoreSellers = true;
+  const rowsPerPage = 10;
+
+  async function fetchSellersBatch() {
+    try {
+      loadingSellers = true;
+
+      const res = await fetch(`/api/fetchAllSellers?page=${currentPage}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch sellers (status ${res.status})`);
+      }
+
+      const { data } = await res.json();
+
+      if (data.length === 0) {
+        hasMoreSellers = false; // no more results
+      } else {
+        sellers = [...sellers, ...data];
+        currentPage++; // move to next page for the next call
+      }
+    } catch (err: any) {
+      sellersError = err.message ?? "An error occurred while fetching sellers";
+    } finally {
+      loadingSellers = false;
+    }
+  }
+
   function next() {
-    currentIndex = (currentIndex + 1) % sellers.length;
-    scrollToCard(currentIndex);
+    const nextIndex = (currentIndex + 1) % sellers.length;
+    currentIndex = nextIndex;
+    scrollToCard(nextIndex);
+
+    // prefetch next batch if close to the end
+    if (hasMoreSellers && nextIndex >= sellers.length - 3) {
+      fetchSellersBatch();
+    }
   }
 
   function prev() {
-    currentIndex = (currentIndex - 1 + sellers.length) % sellers.length;
-    scrollToCard(currentIndex);
+    const prevIndex = (currentIndex - 1 + sellers.length) % sellers.length;
+    currentIndex = prevIndex;
+    scrollToCard(prevIndex);
   }
 
   function scrollToCard(index: number) {
@@ -23,10 +61,16 @@
       behavior: "smooth"
     });
   }
+
+  // Fetch first batch on mount
+  onMount(() => {
+    fetchSellersBatch();
+  });
 </script>
 
+
 <div class="m-2" id="brands">
-  <h1 class="text-2xl font-bold mb-2">Featured Brands</h1>
+  <h1 class="mb-2 text-4xl font-bold">Featured brands:</h1>
 
   <!-- Slider container -->
   <div class="relative">
