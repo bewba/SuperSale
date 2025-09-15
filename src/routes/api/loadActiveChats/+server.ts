@@ -73,6 +73,8 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 				filter: `chatroom_id='${room.id}' && sender_id!='${userId}' && is_seen=false`
 			});
 
+			console.log(room);
+
 			chats.push({
 				id: room.id,
 				productImage: room.image_url || '/placeholder-image.jpg',
@@ -84,7 +86,9 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 				hasUnseenMessages: unseenTotal > 0,
 				buyer: room.buyer,
 				seller: room.seller,
-				seen_by: room.seen_by
+				seen_by: room.seen_by,
+				productNameText: room.product_name,
+				seller_name: room.seller_name
 			});
 		}
 

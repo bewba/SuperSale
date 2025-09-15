@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
 	import { getPb } from '$lib/pocketbase/pb.client';
+	import { goto } from '$app/navigation';
 
 	type Chat = {
 		id: string;
@@ -144,6 +145,7 @@
 
 	function openChat(chatId: string) {
 		console.log('Opening chat:', chatId);
+		goto(`/chat/${chatId}`);
 	}
 
 	// Infinite scroll observer
@@ -172,35 +174,50 @@
 <!-- Chat list container -->
 <div class="h-screen overflow-y-auto" on:scroll={handleScroll}>
 	{#each chats as chat}
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			on:click={() => openChat(chat.id)}
-			class="flex cursor-pointer items-start border-b p-3 hover:bg-gray-50"
+			class="flex cursor-pointer items-center border-b border-gray-100 p-4 transition-all duration-200 hover:bg-gray-50 hover:shadow-sm"
 		>
-			<img
-				src={chat.productImage}
-				alt={chat.productNameText}
-				class="h-12 w-12 rounded-md object-cover"
-			/>
+			<!-- Product Image -->
+			<div class="relative">
+				<img
+					src={chat.productImage}
+					alt={chat.productNameText}
+					class="h-20 w-20 object-cover shadow-sm"
+				/>
+				{#if chat.hasUnseenMessages}
+					<div
+						class="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-white bg-blue-500"
+					></div>
+				{/if}
+			</div>
 
-			<div class="ml-3 flex-1">
-				<p class={`text-sm ${chat.hasUnseenMessages ? 'font-bold' : 'font-medium'}`}>
-					{chat.productNameText}
+			<!-- Chat Content -->
+			<div class="ml-4 min-w-0 flex-1">
+				<div class="flex items-baseline justify-between">
+					<h3 class="truncate text-base font-medium text-gray-900">
+						{chat.productNameText}
+					</h3>
+					<span class="ml-2 flex-shrink-0 text-xs text-gray-500">
+						{new Date(chat.lastMessageTime).toLocaleTimeString([], {
+							hour: '2-digit',
+							minute: '2-digit'
+						})}
+					</span>
+				</div>
+
+				<p class="mt-0.5 truncate text-xs text-gray-600">
+					{chat.seller_name}
 				</p>
+
 				<p
-					class={`text-xs ${chat.hasUnseenMessages ? 'font-semibold text-gray-800' : 'text-gray-600'}`}
-				>
-					{new Date(chat.lastMessageTime).toLocaleString()}
-				</p>
-				<p
-					class={`truncate ${chat.hasUnseenMessages ? 'font-semibold text-black' : 'text-gray-700'}`}
+					class={`text-md mt-1 truncate ${chat.hasUnseenMessages ? 'font-medium text-gray-900' : 'text-gray-500'}`}
 				>
 					{chat.lastMessage}
 				</p>
 			</div>
-
-			{#if chat.hasUnseenMessages}
-				<span class="ml-2 font-bold text-blue-500">•</span>
-			{/if}
 		</div>
 	{/each}
 
