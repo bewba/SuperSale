@@ -181,7 +181,7 @@
 	}
 
 	function handleFloatingChat() {
-		goto('/chat');
+		goto('/chatRooms');
 	}
 
 	async function handleChat(event: CustomEvent) {
@@ -257,16 +257,20 @@
 		<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
 	{/if}
 
-	<!-- Floating Chat Button -->
-	<button class="floating-chat-btn" on:click={handleFloatingChat} aria-label="Open chat">
+	<button
+		class="floating-chat-btn relative flex h-36 w-36 items-center justify-center rounded-full shadow-lg"
+		on:click={handleFloatingChat}
+		aria-label="Open chat"
+		style="background: linear-gradient(135deg, #FFA500, #FF7F00);"
+	>
 		<!-- Chat Icon SVG -->
 		<svg
-			width="24"
-			height="24"
+			width="48"
+			height="48"
 			viewBox="0 0 24 24"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
-			class="chat-icon"
+			class="chat-icon text-white"
 		>
 			<path
 				d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H6L10 22L14 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
@@ -277,8 +281,10 @@
 			<circle cx="16" cy="10" r="1" fill="white" />
 		</svg>
 
-		<!-- Notification dot (optional - you can remove this if not needed) -->
-		<span class="notification-dot"></span>
+		<!-- Notification dot -->
+		<span
+			class="notification-dot absolute top-1 right-1 h-4 w-4 rounded-full border-2 border-white bg-red-500"
+		></span>
 	</button>
 
 	<!-- Footer  -->
@@ -290,8 +296,8 @@
 		position: fixed;
 		bottom: 20px;
 		right: 20px;
-		width: 60px;
-		height: 60px;
+		width: 96px;
+		height: 96px;
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		border: none;
 		border-radius: 50%;
