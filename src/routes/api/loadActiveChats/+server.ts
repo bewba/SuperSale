@@ -32,7 +32,7 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 			// Fetch paginated chat rooms for this user
 			const result = await pb.collection('chat_rooms').getList(page, perPage, {
 				filter: `buyer='${userId}' || seller='${userId}'`,
-				sort: '-updated'
+				sort: '-last_message_sent'
 			});
 			chatRooms = result.items;
 			totalItems = result.totalItems;
