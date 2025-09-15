@@ -331,8 +331,8 @@
 
 	.notification-dot {
 		position: absolute;
-		top: 8px;
-		right: 8px;
+		top: 20px;
+		right: 20px;
 		width: 12px;
 		height: 12px;
 		background: #ff4444;
@@ -359,8 +359,8 @@
 	/* Mobile responsive adjustments */
 	@media (max-width: 768px) {
 		.floating-chat-btn {
-			width: 56px;
-			height: 56px;
+			width: 72px;
+			height: 72px;
 			bottom: 16px;
 			right: 16px;
 		}
@@ -373,22 +373,22 @@
 		.notification-dot {
 			width: 10px;
 			height: 10px;
-			top: 6px;
-			right: 6px;
+			top: 12px;
+			right: 12px;
 		}
 	}
 
 	@media (max-width: 480px) {
 		.floating-chat-btn {
-			width: 52px;
-			height: 52px;
+			width: 60px;
+			height: 60px;
 			bottom: 12px;
 			right: 12px;
 		}
 
 		.chat-icon {
-			width: 18px;
-			height: 18px;
+			width: 32px;
+			height: 32px;
 		}
 	}
 
