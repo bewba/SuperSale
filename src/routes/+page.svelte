@@ -152,6 +152,7 @@
 	import CheckoutModal from '$lib/components/ui/CheckoutModal/CheckoutModal.svelte';
 	import type { Deal, ProductResponse } from '$lib/types/types';
 	import { onMount } from 'svelte';
+  import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
 	// import type { Seller } from '$lib/types/types';
 
 	// TODO: RETRIVE SELLERS FROM THE DATABASE
@@ -252,6 +253,15 @@
 
 	<!-- Brands -->
 	<!-- <SellerCarousel {sellers} /> -->
+
+  <!-- Active Listings -->
+  <ActiveListings
+    {deals}
+    {hasMore}
+    {loading}
+    on:select={(e) => openCheckout(e.detail)}
+    on:loadMore={() => loadMore()}
+  />
 
 	{#if openCheckoutModal}
 		<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
