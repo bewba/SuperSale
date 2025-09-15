@@ -8,33 +8,42 @@
 </script>
 
 <svelte:head>
-	<title>Check Your Email - UnliPassion</title>
+	<title>Check Your Email - SuperSale.ph</title>
 </svelte:head>
 
-<div class="bg-unli-light flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
-	<div class="relative w-full max-w-md space-y-6 text-center">
-		<!-- Large Centered Logo
-		<div class="flex justify-center hover:scale-[1.02]">
-			<Logo size="xl" showText={false} />
-		</div>   -->
-
+<div class="bg-[#fcead6] flex min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+	<div class="relative w-full max-w-md sm:max-w-lg lg:max-w-2xl space-y-6 text-center">	
 		<!-- Title -->
-		<h2 class="text-unli-deep text-3xl font-bold">Check Your Email</h2>
+		<h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
+			Check Your Email
+		</h2>
 
 		<!-- Message -->
-		<p class="text-unli-forest">
-			We’ve sent you a confirmation link. Please check your inbox and click the link to verify your
-			account.
+		<p class="text-sm sm:text-base lg:text-lg text-gray-700 px-2 sm:px-6">
+			We've sent you a confirmation link. Please check your inbox and click the link to verify your account.
 		</p>
 
 		<!-- Button -->
 		<div class="pt-4">
 			<button
 				on:click={goHome}
-				class="bg-unli-forest hover:bg-unli-dark cursor-pointer rounded-md px-6 py-2 text-white shadow transition-all duration-200 hover:scale-[1.02]"
+				class="bg-[#0060a9] hover:bg-[#0060a1] cursor-pointer rounded-md px-4 sm:px-6 lg:px-8 py-2 sm:py-3 text-white font-semibold shadow transition-all duration-200 hover:scale-[1.05] text-lg"
 			>
-				Go Back Home
+				Return to main page
 			</button>
 		</div>
+	
+		<!-- Support -->
+		<p class="text-xs sm:text-sm px-2 sm:px-6 text-gray-700">
+			Didn't receive the email?<br>
+			Contact <span class="font-medium">supersale.phbusiness@gmail.com</span> for help.
+		</p>
+	
+		<!-- Logo -->
+		<img 
+			src="/logo.svg" 
+			alt="supersale" 
+			class="mx-auto h-10 sm:h-12 lg:h-16 w-auto object-contain"
+		/>
 	</div>
 </div>

@@ -1,8 +1,8 @@
-// src/routes/+page.server.ts
+// src/routes/+layout.server.ts
 import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './upload/$types';
+import type { LayoutServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const user = locals.user;
 
 	if (!user) {
@@ -23,22 +23,20 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		.select('*')
 		.eq('userId', user.id)
 		.eq('role', 'seller')
-		.single();
-
-	console.log(rolesData, rolesError);
+		.maybeSingle(); // 👈 safer
 
 	const isAdmin = !!rolesData;
 
 	if (!isAdmin) {
-		console.log(`❌ user is not seller: ${user.email}`);
-		throw redirect(302, '/');
+		console.log(`❌ Redirecting user to seller confirmation: ${user.email}`);
+		throw redirect(302, '/createAccount');
 	} else {
-		console.log(`✅ user is seller: ${user.email}`);
+		console.log(`✅ Redirecting user to personal dashboard: ${user.email}`);
 	}
 
 	return {
 		user,
 		isAdmin,
-		supabaseError: rolesError ? { message: rolesError?.message, status: rolesError?.status } : null
+		supabaseError: rolesError ? { message: rolesError.message, status: rolesError.status } : null
 	};
 };

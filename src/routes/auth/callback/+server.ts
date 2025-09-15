@@ -21,27 +21,27 @@ export const GET = async (event: any) => {
 		const userId = sessionData.user.id;
 
 		// Check if the user already has a role
-		const { data: existingRoles, error: checkError } = await supabase
-			.from('roles')
-			.select('role')
-			.eq('userId', userId);
+		// const { data: existingRoles, error: checkError } = await supabase
+		// 	.from('roles')
+		// 	.select('role')
+		// 	.eq('userId', userId);
 
-		if (checkError) {
-			console.error(checkError);
-			throw redirect(303, '/auth/auth-code-error');
-		}
+		// if (checkError) {
+		// 	console.error(checkError);
+		// 	throw redirect(303, '/auth/auth-code-error');
+		// }
 
-		// If the user has no roles, assign 'seller'
-		if (!existingRoles || existingRoles.length === 0) {
-			const { data: insertData, error: insertError } = await supabase
-				.from('roles')
-				.insert({ userId, role: 'seller' });
+		// // If the user has no roles, assign 'seller'
+		// if (!existingRoles || existingRoles.length === 0) {
+		// 	const { data: insertData, error: insertError } = await supabase
+		// 		.from('roles')
+		// 		.insert({ userId, role: 'seller' });
 
-			if (insertError) {
-				console.error(insertError);
-				throw redirect(303, '/auth/auth-code-error');
-			}
-		}
+		// 	if (insertError) {
+		// 		console.error(insertError);
+		// 		throw redirect(303, '/auth/auth-code-error');
+		// 	}
+		// }
 
 		// Redirect to next page
 		throw redirect(303, next);

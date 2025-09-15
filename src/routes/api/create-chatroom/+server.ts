@@ -7,17 +7,35 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	try {
 		const { selectedDeal } = await request.json();
 
-		// console.log(selectedDeal);
-
 		let buyerId: string = '';
+		let username: string | null = null;
+
+		const pb = locals.pb;
+		const sb = locals.supabase;
 
 		if (locals.user) {
 			buyerId = locals.user.id;
+			username = locals.user.email;
 		} else {
 			buyerId = cookies.get('fingerprint') ?? '';
+			username = 'Guest';
 		}
 
-		const pb = locals.pb;
+		const sellerId = selectedDeal.owner_id;
+		let sellerName: string | null = null;
+
+		const { data: supaSeller, error: sellerError } = await sb
+			.from('roles')
+			.select('store_name')
+			.eq('userId', sellerId)
+			.single();
+
+		if (!sellerError && supaSeller) {
+			sellerName = supaSeller.store_name;
+		} else {
+			sellerName = 'Unknown Seller';
+		}
+
 		let record: any = null;
 
 		let existing;
@@ -36,8 +54,12 @@ export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 				console.log('No existing chatroom, creating one...');
 				existing = await pb.collection('chat_rooms').create({
 					buyer: buyerId,
+					buyer_name: username,
 					seller: selectedDeal.owner_id,
-					product: selectedDeal.id
+					seller_name: sellerName,
+					product: selectedDeal.id,
+					product_name: selectedDeal.title,
+					image_url: selectedDeal.image_list[0]
 				});
 				record = existing;
 

@@ -155,35 +155,34 @@
 			</p>
 
 			<!-- Name and description -->
-			<!-- <div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
+			<div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
 				<h2
 					class="truncate text-xl leading-tight font-semibold sm:text-2xl md:text-3xl lg:text-4xl"
 				>
 					{deal.title}
 				</h2>
 
-				<p
+				<!-- <p
 					class="line-clamp-1 text-xs text-gray-200 sm:line-clamp-2 sm:text-sm md:line-clamp-3 md:text-base"
 				>
 					{deal.reason}
-				</p>
-			</div> -->
+				</p> -->
+			</div>
 		</div>
 
 		<!-- Right -->
-		<!-- <div class="text-right">
+		<div class="text-right">
 			<h2
-				class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white 
-							sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
-			>
-				₱{deal.discount_price.toFixed(2)}
-				<span class="text-[10px] underline sm:text-xs">per pc.</span>
-			</h2>
-			<p class="text-xs text-gray-300 line-through sm:text-sm">
-				₱{deal.original_price.toFixed(2)}
-			</p>
-		</div> -->
-
+		 		class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white
+				sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
+		 	>
+				₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+		 		<span class="text-[10px] underline sm:text-xs">per pc.</span>
+		 	</h2>
+		 	<p class="text-xs text-gray-300 line-through sm:text-sm">
+				₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+		 	</p>
+		</div>
 	</div>
 </div>
 
