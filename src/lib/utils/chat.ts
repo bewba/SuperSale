@@ -73,6 +73,12 @@ export async function sendMessage(
 	try {
 		const res = await pb.collection('messages').create(payload, { $autoCancel: false });
 		console.log('✅ Message sent:', res);
+
+		// 2. Update chatroom in parallel
+		await pb.collection('chat_rooms').update(slug, {
+			last_message: text,
+			last_message_sent: res.created // PocketBase automatically adds created timestamp
+		});
 		return res;
 	} catch (err: any) {
 		console.error('❌ PocketBase error:', err.response);
