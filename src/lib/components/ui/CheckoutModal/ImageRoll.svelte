@@ -62,15 +62,15 @@
 	}
 </script>
 
-<div class="relative">
+<div class="relative h-full">
   <!-- Top Details -->
   <div class="absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-3 text-white">
     <!-- Discount percentage -->
     <p
       class="rounded-lg bg-gradient-to-r from-red-700 via-red-600 to-red-500
-             px-2 py-1 text-2xl font-bold tracking-wide uppercase shadow-lg
-             sm:px-3 sm:py-2 sm:text-3xl md:px-4 md:py-2.5
-             md:text-4xl lg:px-5 lg:py-3 lg:text-3xl"
+             px-2 py-1 text-lg font-bold tracking-wide uppercase shadow-lg
+             sm:px-3 sm:py-2 sm:text-xl md:px-4 md:py-2.5 md:text-2xl 
+             lg:px-3 lg:py-2 lg:text-xl xl:px-4 xl:py-2.5 xl:text-2xl"
     >
       {deal.discount_percent}% OFF
     </p>
@@ -84,9 +84,9 @@
         <img
           src="/star-solid-full.svg"
           alt="star-rating"
-          class="h-7 w-7 text-yellow-400 sm:h-8 sm:w-8 md:h-9 md:w-9"
+          class="h-5 w-5 text-yellow-400 sm:h-6 sm:w-6 md:h-7 md:w-7 lg:h-6 lg:w-6 xl:h-7 xl:w-7"
         />
-        <span class="text-sm font-semibold drop-shadow-md sm:text-base md:text-lg lg:text-xl">
+        <span class="text-sm font-semibold drop-shadow-md sm:text-base md:text-lg lg:text-base xl:text-lg">
           {deal.avg_rating.toFixed(1)}
         </span>
       </div> 
@@ -96,18 +96,18 @@
   <!-- Image Slider -->
   <div
     id="img-slider"
-    class="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-scroll scroll-smooth"
+    class="scrollbar-hide flex h-full snap-x snap-mandatory gap-4 overflow-x-scroll scroll-smooth"
   >
     {#if imageList} 
       {#each imageList as img}
-        <div class="w-full shrink-0 snap-center">
-          <ProductImage image={img} />
+        <div class="w-full h-full shrink-0 snap-center">
+          <ProductImage image={img} className="h-full" />
         </div>
       {/each} 
     <!-- Display the main back-up image if image list is null -->
     {:else}
-      <div class="w-full shrink-0 snap-center">
-        <ProductImage image={deal.image} />
+      <div class="w-full h-full shrink-0 snap-center">
+        <ProductImage image={deal.image} className="h-full" />
       </div> 
     {/if}
   </div>
@@ -116,7 +116,8 @@
   <div class="absolute right-0 bottom-0 left-0 z-10 flex items-end justify-between p-3 text-white">
     <!-- Left -->
     <p
-      class="w-fit rounded-md bg-[#f76800] px-1.5 pb-0.5 text-xs font-bold text-white sm:text-sm md:text-base"
+      class="w-fit rounded-md bg-[#f76800] px-1.5 pb-0.5 text-xs font-bold text-white 
+             sm:text-sm md:text-base lg:text-sm xl:text-base"
     >
       Promo ends in: {timeLeft}
     </p>
@@ -124,22 +125,23 @@
 
   <!-- Navigation buttons -->
   <!-- Hide buttons if only one image is available -->
-  {#if imageList} 
+  {#if imageList && imageList.length > 1} 
     <button
       onclick={prev}
-      class="absolute top-1/2 left-0 z-20 -translate-y-1/2 cursor-pointer rounded-r bg-black/50 py-1 text-white"
+      class="absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded bg-black/50 p-2 text-white
+             hover:bg-black/70 transition-colors duration-200"
     >
-      <ChevronLeft />
+      <ChevronLeft class="h-5 w-5 sm:h-6 sm:w-6" />
     </button>
     <button
       onclick={next}
-      class="absolute top-1/2 right-0 z-20 -translate-y-1/2 cursor-pointer rounded-l bg-black/50 py-1 text-white"
+      class="absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded bg-black/50 p-2 text-white
+             hover:bg-black/70 transition-colors duration-200"
     >
-      <ChevronRight />
+      <ChevronRight class="h-5 w-5 sm:h-6 sm:w-6" />
     </button> 
   {/if} 
 </div>
-
 
 <style>
 	/* Hide scrollbar but keep swipe */
@@ -147,6 +149,7 @@
 		display: none;
 	}
 	.scrollbar-hide {
-		-scrollbar-width: none;
+		-ms-overflow-style: none;
+		scrollbar-width: none;
 	}
 </style>
