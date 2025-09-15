@@ -31,7 +31,7 @@
 	let showEmailPrompt = $state(false);
 	let email = $state('');
 
-	// ADDED: Track if first message has been sent to control when timer starts
+	// Track if first message has been sent to control when timer starts
 	let firstMessageSent = $state(false);
 
 	// References
@@ -41,61 +41,48 @@
 	const pb = getPb();
 	const pbBackground = getPbBackground();
 
-	// ADDED: Variable to store the timer reference at module level
+	// Variable to store the timer reference at module level
 	let presenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-	// ADDED: Track which messages have been marked as seen to avoid duplicate updates
+	// Track which messages have been marked as seen to avoid duplicate updates
 	let seenMessageIds = new Set<string>();
 
-	// ADDED: Intersection Observer for tracking message visibility
+	// Intersection Observer for tracking message visibility
 	let messageObserver: IntersectionObserver | null = null;
 
-	// Helper function to mark messages as seen
-	async function markMessagesAsSeen(messageIds: string[]) {
-		if (messageIds.length === 0) return;
+	// MutationObserver for detecting new message elements
+	let mutationObserver: MutationObserver | null = null;
+
+	// Helper function to mark individual message as seen
+	async function markMessageAsSeen(messageId: string) {
+		if (seenMessageIds.has(messageId)) return;
 
 		try {
-			// Filter out messages that have already been marked as seen
-			const unseenMessageIds = messageIds.filter((id) => !seenMessageIds.has(id));
-			if (unseenMessageIds.length === 0) return;
+			// Update message as seen - this will trigger the real-time subscription
+			await pbBackground.collection('messages').update(messageId, { is_seen: true });
+			seenMessageIds.add(messageId);
 
-			// Fetch chatroom once
+			// Update chatroom seen_by
 			const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
 			const seenBy = chatRoom.seen_by || {};
 
-			// Prepare promises
-			const updates: Promise<any>[] = [];
-
-			// ✅ Update all unseen messages in parallel
-			for (const messageId of unseenMessageIds) {
-				updates.push(pbBackground.collection('messages').update(messageId, { is_seen: true }));
-				seenMessageIds.add(messageId);
-			}
-
-			// ✅ Update chatroom seen_by once if user not marked
 			if (!seenBy[user.id]) {
-				updates.push(
-					pbBackground.collection('chat_rooms').update(slug, {
-						seen_by: {
-							...seenBy,
-							[user.id]: new Date().toISOString()
-						}
-					})
-				);
+				await pbBackground.collection('chat_rooms').update(slug, {
+					seen_by: {
+						...seenBy,
+						[user.id]: new Date().toISOString()
+					}
+				});
 			}
 
-			await Promise.all(updates);
-
-			console.log(`✅ Marked ${unseenMessageIds.length} messages as seen`);
+			console.log(`✅ Marked message ${messageId} as seen`);
 		} catch (err) {
-			console.error('Error marking messages as seen:', err);
+			console.error('Error marking message as seen:', err);
 		}
 	}
 
-	// ADDED: Function to handle message visibility
+	// Function to handle message visibility
 	function handleMessageVisibility(entries: IntersectionObserverEntry[]) {
-		const visibleMessageIds: string[] = [];
-
 		entries.forEach((entry) => {
 			if (entry.isIntersecting) {
 				const messageElement = entry.target as HTMLElement;
@@ -104,41 +91,77 @@
 
 				// Only mark messages from other users as seen (not our own messages)
 				if (messageId && senderId && senderId !== user.id && !seenMessageIds.has(messageId)) {
-					visibleMessageIds.push(messageId);
+					console.log('👀 Message became visible:', messageId, 'from sender:', senderId);
+
+					// Debounce the API call - wait a bit before marking as seen
+					setTimeout(() => {
+						markMessageAsSeen(messageId);
+					}, 500);
 				}
 			}
 		});
-
-		if (visibleMessageIds.length > 0) {
-			// Debounce the API calls - wait a bit before marking as seen
-			setTimeout(() => {
-				markMessagesAsSeen(visibleMessageIds);
-			}, 500);
-		}
 	}
 
-	// ADDED: Set up intersection observer
+	// Set up intersection observer (only create once)
 	function setupMessageObserver() {
-		if (messageObserver) {
-			messageObserver.disconnect();
+		if (!messageObserver && messagesContainer) {
+			messageObserver = new IntersectionObserver(handleMessageVisibility, {
+				root: messagesContainer,
+				rootMargin: '0px',
+				threshold: 0.5 // Message is considered seen when 50% visible
+			});
 		}
+	}
 
-		messageObserver = new IntersectionObserver(handleMessageVisibility, {
-			root: messagesContainer,
-			rootMargin: '0px',
-			threshold: 0.5 // Message is considered seen when 50% visible
+	// Setup mutation observer to watch for new message elements
+	function setupMutationObserver() {
+		if (!messagesContainer || mutationObserver) return;
+
+		mutationObserver = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				mutation.addedNodes.forEach((node) => {
+					if (node.nodeType === Node.ELEMENT_NODE) {
+						const element = node as Element;
+						const messageElement =
+							element.querySelector('[data-message-id]') ||
+							(element.hasAttribute('data-message-id') ? element : null);
+
+						if (messageElement && messageObserver) {
+							const messageId = messageElement.getAttribute('data-message-id');
+							const senderId = messageElement.getAttribute('data-sender-id');
+
+							// Only observe messages from other users
+							if (messageId && senderId && senderId !== user.id) {
+								messageObserver.observe(messageElement);
+								console.log('🔍 Auto-observing new message via MutationObserver:', messageId);
+							}
+						}
+					}
+				});
+			});
+		});
+
+		mutationObserver.observe(messagesContainer, {
+			childList: true,
+			subtree: true
 		});
 	}
 
-	// ADDED: Observe message elements
-	function observeMessages() {
-		if (!messageObserver) return;
+	// Observe all existing message elements (for initial load)
+	function observeAllMessages() {
+		if (!messageObserver || !messagesContainer) return;
 
-		// Observe all message elements
-		const messageElements = messagesContainer?.querySelectorAll('[data-message-id]');
+		const messageElements = messagesContainer.querySelectorAll('[data-message-id]');
 		messageElements?.forEach((element) => {
-			messageObserver!.observe(element);
+			const messageId = element.getAttribute('data-message-id');
+			const senderId = element.getAttribute('data-sender-id');
+
+			// Only observe messages from other users
+			if (messageId && senderId && senderId !== user.id) {
+				messageObserver!.observe(element);
+			}
 		});
+		console.log('🔍 Observing all existing messages:', messageElements.length);
 	}
 
 	// Helper function to check if other participant has email in PocketBase
@@ -237,6 +260,7 @@
 	onMount(() => {
 		let unsub: () => void;
 		let unsubPresence: () => void;
+		let unsubMessages: () => void;
 
 		// Setup intersection observer
 		setupMessageObserver();
@@ -244,22 +268,43 @@
 		// Load messages
 		loadMessages(slug).then((msgs) => {
 			messages = msgs;
-			// Set up observer after messages are loaded
+			// Set up observers after messages are loaded
 			tick().then(() => {
-				observeMessages();
+				observeAllMessages();
+				setupMutationObserver(); // This will handle new messages automatically
 			});
 		});
 
-		// Subscribe to messages
+		// Subscribe to messages - MutationObserver will handle new message observation
 		subscribeToMessages(slug, (m) => {
 			messages = [...messages, m];
-			// Re-observe messages when new ones arrive
-			tick().then(() => {
-				observeMessages();
-			});
+			// No need to manually observe - MutationObserver will handle it
 		}).then((sub) => {
 			unsub = sub;
 		});
+
+		// Subscribe to real-time message updates for seen status
+		pb.collection('messages')
+			.subscribe('*', (e) => {
+				// Only handle updates to messages in this chatroom
+				if (e.record.chatroom_id === slug && e.action === 'update') {
+					const updatedMessage = e.record;
+
+					// Update the local messages array when a message's seen status changes
+					messages = messages.map((msg) => {
+						if (!msg.isSystem && msg.id === updatedMessage.id) {
+							return {
+								...(msg as Message),
+								is_seen: updatedMessage.is_seen
+							};
+						}
+						return msg;
+					});
+				}
+			})
+			.then((sub) => {
+				unsubMessages = sub;
+			});
 
 		// Enter chatroom
 		enterChatroom(slug, user.id);
@@ -336,7 +381,11 @@
 		return () => {
 			unsub?.();
 			unsubPresence?.();
+			unsubMessages?.();
 			messageObserver?.disconnect();
+			mutationObserver?.disconnect();
+			messageObserver = null;
+			mutationObserver = null;
 			leaveChatroom(slug, user.id);
 			if (presenceTimer) clearTimeout(presenceTimer);
 		};
@@ -397,8 +446,6 @@
 		const _len = messages.length;
 		tick().then(() => {
 			bottom?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-			// Re-observe messages after scrolling
-			observeMessages();
 		});
 	});
 
@@ -461,7 +508,7 @@
 						<p class="text-sm text-gray-500 italic">{m.text}</p>
 					</div>
 				{:else}
-					<!-- UPDATED: Added data attributes for intersection observer -->
+					<!-- Message with data attributes for intersection observer -->
 					<div
 						class="flex {m.sender_id === user.id ? 'justify-end' : 'justify-start'}"
 						data-message-id={m.id}
@@ -477,7 +524,7 @@
 								</p>
 							{/if}
 							<p class="text-2xl break-words">{m.text}</p>
-							<!-- OPTIONAL: Show seen indicator for your own messages -->
+							<!-- Show seen indicator for your own messages -->
 							{#if m.sender_id === user.id && m.is_seen}
 								<p class="mt-1 text-right text-xs text-gray-300">✓ Seen</p>
 							{/if}
