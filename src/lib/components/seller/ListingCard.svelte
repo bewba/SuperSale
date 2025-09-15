@@ -63,17 +63,25 @@
 	</div>
 
 	<!-- Bottom Details -->
-	<div class="absolute right-0 bottom-0 left-0 flex flex-col gap-1.5 sm:gap-2 p-3 sm:p-4 text-white">
+	<div class="absolute right-0 bottom-0 left-0 flex flex-col gap-2 sm:gap-3 p-3 sm:p-4 text-white">
+		<!-- Title + Reason -->
 		<div>
 			<h3 class="truncate text-lg sm:text-xl md:text-2xl font-semibold">{deal.title}</h3>
 			<p class="line-clamp-1 text-xs sm:text-sm text-gray-200">{deal.reason}</p>
 		</div>
 
-		<!-- Price -->
-		<div class="flex items-center justify-between gap-1.5 sm:gap-2">
-			<p class="h-fit w-fit rounded-lg bg-[#f76800] px-1.5 sm:px-2 py-0.5 text-[0.65rem] sm:text-xs font-bold">
+		<!-- Price Row -->
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<p class="rounded-lg bg-[#f76800] px-1.5 sm:px-2 py-0.5 text-[0.65rem] sm:text-xs font-bold">
 				Promo ends in: {timeLeft}
 			</p>
+
+			<h2
+				class="rounded-lg bg-[#f76800] px-2 py-1 text-base sm:text-lg md:text-xl font-bold text-white inline-flex items-baseline gap-1 whitespace-nowrap"
+			>
+				₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+				<span class="text-[10px] sm:text-xs underline">per pc.</span>
+			</h2>
 		</div>
 	</div>
 </div>
