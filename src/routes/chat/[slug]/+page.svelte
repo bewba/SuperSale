@@ -57,23 +57,36 @@
 		try {
 			// Filter out messages that have already been marked as seen
 			const unseenMessageIds = messageIds.filter((id) => !seenMessageIds.has(id));
-
 			if (unseenMessageIds.length === 0) return;
 
-			// Update each message in the messages table
-			const updatePromises = unseenMessageIds.map(async (messageId) => {
-				try {
-					await pbBackground.collection('messages').update(messageId, {
-						is_seen: true
-					});
-					seenMessageIds.add(messageId);
-					console.log(`Marked message ${messageId} as seen`);
-				} catch (err) {
-					console.error(`Failed to mark message ${messageId} as seen:`, err);
-				}
-			});
+			// Fetch chatroom once
+			const chatRoom = await pbBackground.collection('chat_rooms').getOne(slug);
+			const seenBy = chatRoom.seen_by || {};
 
-			await Promise.all(updatePromises);
+			// Prepare promises
+			const updates: Promise<any>[] = [];
+
+			// ✅ Update all unseen messages in parallel
+			for (const messageId of unseenMessageIds) {
+				updates.push(pbBackground.collection('messages').update(messageId, { is_seen: true }));
+				seenMessageIds.add(messageId);
+			}
+
+			// ✅ Update chatroom seen_by once if user not marked
+			if (!seenBy[user.id]) {
+				updates.push(
+					pbBackground.collection('chat_rooms').update(slug, {
+						seen_by: {
+							...seenBy,
+							[user.id]: new Date().toISOString()
+						}
+					})
+				);
+			}
+
+			await Promise.all(updates);
+
+			console.log(`✅ Marked ${unseenMessageIds.length} messages as seen`);
 		} catch (err) {
 			console.error('Error marking messages as seen:', err);
 		}
@@ -366,6 +379,11 @@
 		console.log('sending message');
 		if (!newMessage.trim()) return;
 		await sendMessage(slug, newMessage, user);
+		await pbBackground.collection('chat_rooms').update(slug, {
+			seen_by: {
+				[user?.id]: new Date().toISOString()
+			}
+		});
 		newMessage = '';
 
 		if (!firstMessageSent) {
