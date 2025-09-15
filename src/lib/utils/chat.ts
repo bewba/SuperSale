@@ -77,7 +77,8 @@ export async function sendMessage(
 		// 2. Update chatroom in parallel
 		await pb.collection('chat_rooms').update(slug, {
 			last_message: text,
-			last_message_sent: res.created // PocketBase automatically adds created timestamp
+			last_message_sent: res.created,
+			id_of_last_sender: user?.id ?? null
 		});
 		return res;
 	} catch (err: any) {
