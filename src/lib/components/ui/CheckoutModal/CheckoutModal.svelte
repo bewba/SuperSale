@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import ImageRoll from './ImageRoll.svelte';
 	import type { Deal } from '$lib/types/types';
 
 	export let selectedDeal: Deal;
+
+  let sellerData: any = null;
+	let loadingSeller = true;
+	let sellerError: string | null = null;
 
 	if (!selectedDeal) {
 		closeModal();
@@ -18,6 +22,43 @@
 	function handleChat() {
 		dispatch('chat', { selectedDeal });
 	}
+
+  async function fetchSellerData() {
+    if (!selectedDeal?.owner_id) {
+      loadingSeller = false;
+      return;
+    }
+
+    try {
+      loadingSeller = true;
+      sellerError = null;
+
+      // Use query parameters instead of route parameters
+      const response = await fetch(`/api/fetchSeller?seller_id=${selectedDeal.owner_id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch seller: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      sellerData = result.data;
+    } catch (error) {
+      console.error('Error fetching seller data:', error);
+      sellerError = error instanceof Error ? error.message : 'Failed to load seller information';
+    } finally {
+      loadingSeller = false;
+    }
+  }
+
+  $: if (selectedDeal?.owner_id) {
+    fetchSellerData();
+  }
+
 </script>
 
 <div
@@ -62,14 +103,18 @@
 				</div>
 
 				<!-- Seller info -->
-				<!-- <div class="mt-3 text-sm text-gray-700 md:text-base"> -->
-					<!-- <p><strong>Remaining stock:</strong> {selectedDeal.quantity} pcs.</p> -->
-					<!-- TODO: Need to query the details from the server -->
-					<!-- <p class="mt-1"> -->
-						<!-- <strong>More details by the seller:</strong><br /> -->
-						<!-- {selectedDeal.reason} -->
-					<!-- </p> -->
-				<!-- </div> -->
+				<div class="mt-3 text-sm text-gray-700 md:text-base">
+          {#if loadingSeller}
+            <p>Loading seller info...</p>
+          {:else if sellerError}
+            <p class="text-red-500">Error: {sellerError}</p>
+          {:else if sellerData}
+            <div class="seller-info">
+              <p><strong>Seller ID:</strong> {sellerData.userId}</p>
+              <p><strong>Role:</strong> {sellerData.store_name}</p>
+            </div>
+          {/if}			
+				</div>
 
 				<!-- Chat button -->
 				<button
@@ -82,3 +127,10 @@
 		</div>
 	</div>
 </div>
+
+<!-- <p><strong>Remaining stock:</strong> {selectedDeal.quantity} pcs.</p> -->
+					<!-- TODO: Need to query the details from the server -->
+					<!-- <p class="mt-1"> -->
+						<!-- <strong>More details by the seller:</strong><br /> -->
+						<!-- {selectedDeal.reason} -->
+					<!-- </p> -->
