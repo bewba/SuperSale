@@ -27,6 +27,9 @@
 
 <!-- container uses CSS columns for masonry; mobile-first columns-2 -->
 <div class="mt-4 px-3">
+  <h1 class="mb-2 text-4xl font-bold">Today's listings:</h1>
+
+  
   <div class="columns-2 gap-3 md:columns-3 lg:columns-4">
     {#each deals as deal (deal.id)}
       <!-- each card must be inline-block + full width to flow into columns properly -->
