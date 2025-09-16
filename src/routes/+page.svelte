@@ -41,13 +41,7 @@
 	};
 
 	function computeUnseen(chat: Chat): boolean {
-		const seenTime = chat.seen_by?.[user.id];
-		if (!seenTime) return true; // never seen
-
-		const lastSeen = new Date(seenTime);
-		const lastMessage = new Date(chat.lastMessageTime);
-
-		return lastMessage > lastSeen;
+		return !chat.seen_by?.[user.id];
 	}
 
 	async function checkUnseenMessages() {
@@ -176,52 +170,48 @@
 </script>
 
 <div class="min-h-[100vh]">
-  <!-- Header -->
-  <Header />
-  
-  <!-- Hero -->
-  <!-- <Hero /> -->
-  
-  <!-- Main Content - Padding only on tablets and desktops -->
-  <div class="mt-8 px-0 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
-    <!-- Hot Deals -->
-    <div class="px-4 sm:px-0">
-      <HotDeals
-        {deals}
-        {hasMore}
-        {loading}
-        on:select={(e) => openCheckout(e.detail)}
-        on:loadMore={() => loadMore()}
-      />
-    </div>
-    
-    <!-- Brands -->
-    <div class="mt-6 sm:mt-8 md:mt-10 px-4 sm:px-0">
-      <SellerCarousel />
-    </div>
-    
-    <!-- Active Listings -->
-    <div class="mt-6 sm:mt-8 md:mt-10 px-4 sm:px-0">
-      <ActiveListings
-        {deals}
-        {hasMore}
-        {loading}
-        on:select={(e) => openCheckout(e.detail)}
-        on:loadMore={() => loadMore()}
-      />
-    </div>
-  </div>
+	<!-- Header -->
+	<Header />
 
-  <!-- Checkout Modal -->
-  {#if openCheckoutModal}
-    <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-      <CheckoutModal 
-        {selectedDeal} 
-        on:close={closeCheckout} 
-        on:chat={(e) => handleChat(e)} 
-      />
-    </div>
-  {/if}
+	<!-- Hero -->
+	<!-- <Hero /> -->
+
+	<!-- Main Content - Padding only on tablets and desktops -->
+	<div class="mt-8 px-0 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
+		<!-- Hot Deals -->
+		<div class="px-4 sm:px-0">
+			<HotDeals
+				{deals}
+				{hasMore}
+				{loading}
+				on:select={(e) => openCheckout(e.detail)}
+				on:loadMore={() => loadMore()}
+			/>
+		</div>
+
+		<!-- Brands -->
+		<div class="mt-6 px-4 sm:mt-8 sm:px-0 md:mt-10">
+			<SellerCarousel />
+		</div>
+
+		<!-- Active Listings -->
+		<div class="mt-6 px-4 sm:mt-8 sm:px-0 md:mt-10">
+			<ActiveListings
+				{deals}
+				{hasMore}
+				{loading}
+				on:select={(e) => openCheckout(e.detail)}
+				on:loadMore={() => loadMore()}
+			/>
+		</div>
+	</div>
+
+	<!-- Checkout Modal -->
+	{#if openCheckoutModal}
+		<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
+			<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
+		</div>
+	{/if}
 
 	<button
 		class="floating-chat-btn relative flex h-36 w-36 items-center justify-center rounded-full shadow-lg"
@@ -255,8 +245,8 @@
 		{/if}
 	</button>
 
-  <!-- Footer -->
-  <Footer />
+	<!-- Footer -->
+	<Footer />
 </div>
 
 <style>

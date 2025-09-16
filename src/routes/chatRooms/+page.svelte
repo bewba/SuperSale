@@ -15,13 +15,7 @@
 	};
 
 	function computeUnseen(chat: Chat): boolean {
-		const seenTime = chat.seen_by?.[user.id];
-		if (!seenTime) return true; // never seen
-
-		const lastSeen = new Date(seenTime);
-		const lastMessage = new Date(chat.lastMessageTime);
-
-		return lastMessage > lastSeen;
+		return !chat.seen_by?.[user.id];
 	}
 
 	export let data;
