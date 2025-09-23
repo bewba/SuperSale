@@ -426,14 +426,16 @@
 
 	async function handleSend() {
 		console.log('sending message');
+
 		if (!newMessage.trim()) return;
-		await sendMessage(slug, newMessage, user);
+		let messageToSend = newMessage;
+		newMessage = '';
+		await sendMessage(slug, messageToSend, user);
 		await pbBackground.collection('chat_rooms').update(slug, {
 			seen_by: {
 				[user?.id]: new Date().toISOString()
 			}
 		});
-		newMessage = '';
 
 		if (!firstMessageSent) {
 			firstMessageSent = true;

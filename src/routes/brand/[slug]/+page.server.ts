@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const supabase = locals.supabase;
-	console.log("SERVER SLUG: ", params.slug);
+	console.log('SERVER SLUG: ', params.slug);
 
 	const { data, error } = await supabase
 		.from('roles')
@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	if (!data) {
-		return { seller: null, error: "Seller not found" };
+		return { seller: null, error: 'Seller not found' };
 	}
 
 	return { seller: data };

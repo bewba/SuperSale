@@ -14,11 +14,14 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 
 		let chatRooms, totalItems;
 
+		// Base filter to exclude chat rooms with last_message as 'n/a' or empty
+		const baseFilter = `(buyer='${userId}' || seller='${userId}') && last_message != 'n/a' && last_message != ''`;
+
 		if (chatId) {
 			// Fetch single chat room for real-time updates
 			try {
 				const room = await pb.collection('chat_rooms').getOne(chatId, {
-					filter: `buyer='${userId}' || seller='${userId}'`
+					filter: baseFilter
 				});
 				chatRooms = [room];
 				totalItems = 1;
@@ -31,7 +34,7 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 		} else {
 			// Fetch paginated chat rooms for this user
 			const result = await pb.collection('chat_rooms').getList(page, perPage, {
-				filter: `buyer='${userId}' || seller='${userId}'`,
+				filter: baseFilter,
 				sort: '-last_message_sent'
 			});
 			chatRooms = result.items;
@@ -57,8 +60,8 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 			let lastMessage = room.last_message || '';
 			let lastMessageTime = room.last_message_sent || room.updated;
 
-			// If no stored last message, fetch from messages collection
-			if (!lastMessage) {
+			// If no stored last message or it's 'n/a', fetch from messages collection
+			if (!lastMessage || lastMessage === 'n/a') {
 				const { items: lastMessages } = await pb.collection('messages').getList(1, 1, {
 					filter: `chatroom_id='${room.id}'`,
 					sort: '-created'
@@ -66,6 +69,11 @@ export const GET: RequestHandler = async ({ locals, cookies, url }) => {
 				const lastMessageRecord = lastMessages[0];
 				lastMessage = lastMessageRecord?.text || '';
 				lastMessageTime = lastMessageRecord?.created || room.updated;
+			}
+
+			// Skip this chat room if we still don't have a valid last message
+			if (!lastMessage || lastMessage === 'n/a') {
+				continue;
 			}
 
 			// Check for unseen messages

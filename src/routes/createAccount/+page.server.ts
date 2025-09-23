@@ -20,9 +20,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	console.log(role, error);
 
-	if (role) {
-		throw redirect(302, '/protected/seller');
-	}
+	// if (role) {
+	// 	throw redirect(302, '/protected/seller');
+	// }
 
 	return {
 		user,
