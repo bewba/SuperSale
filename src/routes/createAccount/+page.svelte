@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { X, ImageUp } from '@lucide/svelte';
 	import { HandHelping, Truck } from '@lucide/svelte';
+	import { toastError, toastInfo, toastSuccess } from '$lib/stores/toast';
+	import imageCompression from 'browser-image-compression';
+	import supabase from '$lib/supabase/supabaseClient';
 
 	let storeName = '';
 	let address = '';
@@ -9,9 +13,34 @@
 	let termsAccepted = false;
 	let attemptedSubmit = false;
 	let loading = false;
-	let errorMessage;
+	let errorMessage = '';
 	let showTerms = false;
 	let showPrivacy = false;
+	let imageFile;
+
+	let imagePreviews: string[] = [];
+	let existingImages: string[] = [];
+
+	function handleImageUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		if (!target.files || target.files.length === 0) return;
+
+		imageFile = target.files[0];
+		console.log(imageFile);
+		const reader = new FileReader();
+
+		reader.onload = (e) => {
+			imagePreviews = [e.target?.result as string]; // overwrite any existing preview
+		};
+
+		reader.readAsDataURL(imageFile);
+	}
+
+	// Remove image
+	function removeImage(index: number) {
+		imagePreviews.splice(index, 1);
+		imagePreviews = [...imagePreviews]; // trigger reactivity
+	}
 
 	function verifyStoreName(storeName: string) {
 		if (!storeName.trim()) {
@@ -25,6 +54,7 @@
 
 	async function handleSignup() {
 		attemptedSubmit = true;
+		toastInfo(`Listing Deal!`, { title: 'Your listing is being placed!', duration: 3000 });
 
 		if (!termsAccepted) {
 			return;
@@ -36,10 +66,45 @@
 
 		loading = true;
 		try {
+			let uploadedUrl: string | null = null;
+			if (imageFile) {
+				const file = imageFile;
+
+				console.log(file);
+
+				console.log('File: ', file);
+
+				// compress image
+				const compressedFile = await imageCompression(file, {
+					maxSizeMB: 0.15, // target max size in MB
+					maxWidthOrHeight: 1024, // resize large images
+					useWebWorker: true
+				});
+
+				// generate unique filename
+				const fileName = `${crypto.randomUUID()}_${file.name}`;
+
+				// upload to Supabase storage
+				const { data, error } = await supabase.storage
+					.from('productImages')
+					.upload(fileName, compressedFile);
+
+				console.log(data, error);
+
+				if (error) throw error;
+
+				// get public URL
+				const { data: publicUrlData } = supabase.storage
+					.from('productImages')
+					.getPublicUrl(fileName);
+
+				uploadedUrl = publicUrlData.publicUrl;
+			}
+
 			const res = await fetch('/api/createAccount', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ storeName, address, pickup, delivery, termsAccepted })
+				body: JSON.stringify({ storeName, address, pickup, delivery, termsAccepted, uploadedUrl })
 			});
 
 			const data = await res.json();
@@ -67,17 +132,78 @@
 		<div class="rounded-2xl bg-white p-6 shadow-xl sm:p-8 lg:p-12">
 			<!-- Header -->
 			<div class="mb-8 text-center sm:mb-10 lg:mb-12">
-				<h1 class="mb-2 text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Store Registration</h1>
-				<p class="text-gray-600 text-sm sm:text-base lg:text-lg">Set up your store details and delivery options</p>
+				<h1 class="mb-2 text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+					Store Registration
+				</h1>
+				<p class="text-sm text-gray-600 sm:text-base lg:text-lg">
+					Set up your store details and delivery options
+				</p>
+			</div>
+
+			<div class="space-y-2">
+				<label for="" class="block text-sm font-semibold text-gray-700"> Upload Logo </label>
+				<label
+					class="mb-4 flex min-h-[22vh] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center transition hover:border-blue-400 hover:bg-blue-50 {imagePreviews.length >=
+					1
+						? 'cursor-not-allowed opacity-50'
+						: ''}"
+				>
+					<ImageUp class="mb-1 h-7 w-7 text-gray-500" />
+					<span class="text-xs text-gray-600">
+						{imagePreviews.length >= 1
+							? 'Maximum image reached'
+							: 'Click/tap to upload or drag & drop'}
+					</span>
+					<input
+						type="file"
+						accept="image/*"
+						class="sr-only"
+						disabled={imagePreviews.length >= 1}
+						on:change={handleImageUpload}
+					/>
+				</label>
+
+				{#if imagePreviews.length > 0}
+					<div class="flex gap-2 pb-4">
+						<!-- Only one image preview -->
+						<div
+							class="group relative aspect-square w-28 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 shadow-sm"
+						>
+							<img
+								src={imagePreviews[0]}
+								alt="Preview"
+								class="h-full w-full rounded-md object-cover"
+							/>
+							<button
+								type="button"
+								aria-label="delete-button"
+								class="absolute top-1 right-1 z-10 cursor-pointer rounded-full bg-black/60 p-0.5 text-white shadow transition hover:bg-red-600"
+								on:click|stopPropagation={() => removeImage(0)}
+							>
+								<X class="h-3.5 w-3.5" />
+							</button>
+							<div
+								class="absolute bottom-1 left-1 rounded px-1 text-[10px] text-white {0 <
+								existingImages.length
+									? 'bg-blue-600'
+									: 'bg-green-600'}"
+							>
+								{0 < existingImages.length ? 'Existing' : 'New'}
+							</div>
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Responsive Grid Layout -->
-			<div class="grid sm:gap-8 grid-cols-1 lg:gap-10">
+			<div class="grid grid-cols-1 sm:gap-8 lg:gap-10">
 				<!-- Form Fields -->
 				<div class="space-y-6 sm:space-y-7 lg:space-y-8">
 					<!-- Store Name Input -->
 					<div class="space-y-2 sm:space-y-3">
-						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base">Store Name</label>
+						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base"
+							>Store Name</label
+						>
 						<input
 							type="text"
 							bind:value={storeName}
@@ -91,7 +217,9 @@
 
 					<!-- Address Input -->
 					<div class="space-y-2 sm:space-y-3">
-						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base">Address</label>
+						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base"
+							>Address</label
+						>
 						<textarea
 							bind:value={address}
 							placeholder="Enter your store address"
@@ -110,9 +238,16 @@
 						<!-- Pickup Toggle -->
 						<div class="flex items-center justify-between rounded-xl bg-gray-50 p-3 sm:p-4">
 							<div class="flex items-center space-x-3">
-								<div class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gray-200">
-									<svg class="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<HandHelping />	
+								<div
+									class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 sm:h-10 sm:w-10"
+								>
+									<svg
+										class="h-4 w-4 text-gray-600 sm:h-5 sm:w-5"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<HandHelping />
 									</svg>
 								</div>
 								<div>
@@ -122,7 +257,7 @@
 							</div>
 							<button
 								on:click={() => (pickup = !pickup)}
-								class="relative inline-flex h-5 w-10 sm:h-6 sm:w-11 lg:h-7 lg:w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {pickup
+								class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:h-6 sm:w-11 lg:h-7 lg:w-12 {pickup
 									? 'bg-[#0060a9]'
 									: 'bg-gray-300'}"
 								role="switch"
@@ -130,7 +265,7 @@
 								aria-label="pickup"
 							>
 								<span
-									class="pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out {pickup
+									class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out sm:h-5 sm:w-5 lg:h-6 lg:w-6 {pickup
 										? 'translate-x-5 sm:translate-x-5'
 										: 'translate-x-0'}"
 								></span>
@@ -140,8 +275,15 @@
 						<!-- Delivery Toggle -->
 						<div class="flex items-center justify-between rounded-xl bg-gray-50 p-3 sm:p-4">
 							<div class="flex items-center space-x-3">
-								<div class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gray-200">
-									<svg class="h-4 w-4 sm:h-5 sm:w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<div
+									class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-200 sm:h-10 sm:w-10"
+								>
+									<svg
+										class="h-4 w-4 text-gray-600 sm:h-5 sm:w-5"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
 										<Truck />
 									</svg>
 								</div>
@@ -152,7 +294,7 @@
 							</div>
 							<button
 								on:click={() => (delivery = !delivery)}
-								class="relative inline-flex h-5 w-10 sm:h-6 sm:w-11 lg:h-7 lg:w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {delivery
+								class="relative inline-flex h-5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none sm:h-6 sm:w-11 lg:h-7 lg:w-12 {delivery
 									? 'bg-[#0060a9]'
 									: 'bg-gray-300'}"
 								role="switch"
@@ -160,7 +302,7 @@
 								aria-label="delivery"
 							>
 								<span
-									class="pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out {delivery
+									class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out sm:h-5 sm:w-5 lg:h-6 lg:w-6 {delivery
 										? 'translate-x-5 sm:translate-x-5'
 										: 'translate-x-0'}"
 								></span>
@@ -210,9 +352,25 @@
 							disabled={loading}
 						>
 							{#if loading}
-								<svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+								<svg
+									class="h-5 w-5 animate-spin text-white"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+									></path>
 								</svg>
 							{:else}
 								Create Store Account

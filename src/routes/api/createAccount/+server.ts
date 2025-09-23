@@ -3,7 +3,10 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const { storeName, address, pickup, delivery, termsAccepted } = await request.json();
+		const { storeName, address, pickup, delivery, termsAccepted, uploadedUrl } =
+			await request.json();
+
+		console.log(storeName, address, pickup, delivery, termsAccepted, uploadedUrl);
 
 		const userId = locals.user.id;
 		const sb = locals.supabase;
@@ -24,8 +27,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			console.log(existingRole);
 			return json({ error: 'User already has a role registered' }, { status: 400 });
 		} else {
-			// ✅ Insert new role if not exists
-
 			const { data, error } = await sb.from('roles').insert([
 				{
 					role: 'seller',
@@ -34,7 +35,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					address,
 					pickup,
 					delivery,
-					terms_accepted: termsAccepted
+					terms_accepted: termsAccepted,
+					logo: uploadedUrl
 				}
 			]);
 
