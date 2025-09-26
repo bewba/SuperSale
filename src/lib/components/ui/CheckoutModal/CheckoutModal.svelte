@@ -48,13 +48,17 @@
 
 			sellerData = result.data;
 
-			console.log(sellerData);
 		} catch (error) {
 			console.error('Error fetching seller data:', error);
 			sellerError = error instanceof Error ? error.message : 'Failed to load seller information';
 		} finally {
 			loadingSeller = false;
 		}
+	}
+
+
+	function openViber() {
+		window.location.href = sellerData.viber_link;
 	}
 
 	$: if (selectedDeal?.owner_id) {
@@ -232,14 +236,15 @@
 
 				<!-- Sticky chat button -->
 				<div class="border-t border-gray-200 bg-gray-50 p-4 sm:p-6 lg:p-8">
-					<button
-						class="w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#0060a9] to-[#004b82]
-							   px-6 py-3
-							   font-semibold text-white shadow-md transition-all
-							   duration-200 ease-in-out hover:-translate-y-0.5 hover:from-[#004b82]
-							   hover:to-[#003a66] hover:shadow-lg
-							   focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none
-							   active:scale-95 active:transform"
+					<!-- Chat modal -->
+					<!-- <button
+						class="cursor-pointer w-full py-3 px-6 bg-gradient-to-r from-[#0060a9] to-[#004b82] 
+							   hover:from-[#004b82] hover:to-[#003a66] 
+							   text-white font-semibold rounded-xl shadow-md 
+							   transform transition-all duration-200 ease-in-out
+							   hover:shadow-lg hover:-translate-y-0.5 
+							   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+							   active:transform active:scale-95"
 						on:click={handleChat}
 					>
 						<span class="flex items-center justify-center gap-2">
@@ -251,7 +256,24 @@
 									d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 								/>
 							</svg>
-							Need to chat with the seller?
+							Chat seller on SuperSale
+						</span>
+					</button> -->
+
+					<!-- Viber Button -->
+					<button
+						on:click={openViber}
+						class="mt-2 w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#665CAC] to-[#7B68EE]
+		px-6 py-3
+		font-semibold text-white shadow-md transition-all
+		duration-200 ease-in-out hover:-translate-y-0.5 hover:from-[#5A4F9A]
+		hover:to-[#6A5ACD] hover:shadow-lg
+		focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none
+		active:scale-95 active:transform"
+					>
+						<span class="flex items-center justify-center gap-2">
+							<img class="h-6" src="/viber.webp" alt="viber-logo" />
+							Chat seller on Viber
 						</span>
 					</button>
 				</div>
