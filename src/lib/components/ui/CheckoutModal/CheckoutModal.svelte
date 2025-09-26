@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import ImageRoll from './ImageRoll.svelte';
 	import type { Deal } from '$lib/types/types';
+	import * as amplitude from '@amplitude/analytics-browser';
 
 	export let selectedDeal: Deal;
 
@@ -57,7 +58,15 @@
 	}
 
 	function openViber() {
-		window.location.href = sellerData.viber_link;
+		if (window?.amplitude) {
+			window.amplitude.track('Open Viber', {
+				seller_id: sellerData.id,
+				viber_link: sellerData.viber_link
+			});
+		}
+		setTimeout(() => {
+			window.location.href = sellerData.viber_link;
+		}, 200);
 	}
 
 	$: if (selectedDeal?.owner_id) {
