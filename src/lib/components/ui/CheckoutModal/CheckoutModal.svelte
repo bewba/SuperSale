@@ -194,6 +194,7 @@
 				
 				<!-- Sticky chat button -->
 				<div class="p-4 sm:p-6 lg:p-8 bg-gray-50 border-t border-gray-200">
+					<!-- Chat modal -->
 					<button
 						class="cursor-pointer w-full py-3 px-6 bg-gradient-to-r from-[#0060a9] to-[#004b82] 
 							   hover:from-[#004b82] hover:to-[#003a66] 
@@ -208,9 +209,26 @@
 							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
 							</svg>
-							Need to chat with the seller?
+							Chat seller on SuperSale
 						</span>
 					</button>
+			
+					<!-- Viber Button -->
+					<button
+            class="mt-2 cursor-pointer w-full py-3 px-6 bg-gradient-to-r from-[#665CAC] to-[#7B68EE]
+            hover:from-[#5A4F9A] hover:to-[#6A5ACD]
+            text-white font-semibold rounded-xl shadow-md
+            transform transition-all duration-200 ease-in-out
+            hover:shadow-lg hover:-translate-y-0.5
+            focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2
+            active:transform active:scale-95"
+        	>
+            <span class="flex items-center justify-center gap-2">
+                <!-- Viber Phone Icon -->
+								<img class="h-6" src="/viber.webp" alt="viber-logo">
+                Chat seller on Viber
+            </span>
+        </button>
 				</div>
 			</div>
 		</div>
