@@ -213,38 +213,6 @@
 		</div>
 	{/if}
 
-	<button
-		class="floating-chat-btn relative flex h-36 w-36 items-center justify-center rounded-full shadow-lg"
-		on:click={handleFloatingChat}
-		aria-label="Open chat"
-		style="background: linear-gradient(135deg, #FFA500, #FF7F00);"
-	>
-		<!-- Chat Icon SVG -->
-		<svg
-			width="48"
-			height="48"
-			viewBox="0 0 24 24"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-			class="chat-icon text-white"
-		>
-			<path
-				d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H6L10 22L14 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
-				fill="currentColor"
-			/>
-			<circle cx="8" cy="10" r="1" fill="white" />
-			<circle cx="12" cy="10" r="1" fill="white" />
-			<circle cx="16" cy="10" r="1" fill="white" />
-		</svg>
-
-		<!-- Conditional Notification dot - only show when there are unseen messages -->
-		{#if hasUnseenMessages}
-			<span
-				class="notification-dot absolute top-1 right-1 h-4 w-4 rounded-full border-2 border-white bg-red-500"
-			></span>
-		{/if}
-	</button>
-
 	<!-- Footer -->
 	<Footer />
 </div>

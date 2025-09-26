@@ -199,14 +199,13 @@
 			</div>
 
 			<div class="text-center">
-
 				<p class="text-sm text-gray-600">
 					Don't have an account?
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_missing_attribute -->
 					<a
 						on:click={() => goto('/auth/signup')}
-						class="cursor-pointer font-medium text-gray-900 transition-all duration-200 hover:text-orange-500 hover:underline"
+						class="cursor-pointer font-medium text-blue-500 transition-all duration-200 hover:text-orange-500 hover:underline"
 					>
 						Sign up here.
 					</a>
