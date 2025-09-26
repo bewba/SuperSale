@@ -16,7 +16,6 @@
 	<title>Sign Up - SuperSale.ph</title>
 </svelte:head>
 
-
 <div class="flex min-h-screen items-start justify-center bg-gray-100 px-4 pt-16 sm:px-6 lg:px-8">
 	<div class="w-full max-w-md space-y-6">
 		<!-- Header -->
@@ -32,11 +31,10 @@
 				</svg>
 			</button>
 
-
 			<!-- Logo -->
 			<div class="mb-4">
 				<img
-					src="/logo.png"
+					src="/logo.svg"
 					alt="UGLY.PH Logo"
 					class="logo-glow mx-auto mb-2 h-auto w-full max-w-[95%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[60%]"
 				/>
@@ -47,7 +45,6 @@
 			<p class="mt-1 text-sm text-gray-600">
 				Sign up to your SuperSale.ph account to list your surplus.
 			</p>
-
 		</div>
 
 		<!-- Login Form -->
@@ -67,7 +64,6 @@
 				<button
 					type="button"
 					on:click={() => goto('/auth/login/google')}
-
 					class="flex w-full transform cursor-pointer items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-700 transition-all duration-200 hover:scale-[1.02] hover:border-gray-400 hover:bg-gray-50 hover:shadow-md"
 				>
 					<svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -113,14 +109,12 @@
 					<div class="w-full border-t border-gray-300"></div>
 				</div>
 				<div class="relative flex justify-center text-sm">
-
 					<span class="bg-gray-100 px-2 text-gray-500">Or sign up with email</span>
 				</div>
 			</div>
 
 			<div class="space-y-4">
 				<div>
-
 					<label for="email" class="block text-sm font-medium text-gray-900"> Email Address </label>
 					<input
 						id="email"
@@ -128,14 +122,12 @@
 						type="email"
 						bind:value={email}
 						required
-
 						class="relative mt-1 block w-full appearance-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 transition-all duration-200 hover:border-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none"
 						placeholder="juan@example.com"
 					/>
 				</div>
 
 				<div>
-
 					<label for="password" class="block text-sm font-medium text-gray-900"> Password </label>
 					<input
 						id="password"
@@ -165,7 +157,7 @@
 			<div class="text-center">
 				<p class="text-sm text-gray-600">
 					Already have an account?
-					<a href="/auth" class="font-medium hover:underline">Sign in here</a>
+					<a href="/auth" class="font-medium text-blue-500 hover:underline">Sign in here</a>
 				</p>
 			</div>
 		</form>
