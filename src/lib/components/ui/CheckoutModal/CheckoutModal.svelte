@@ -195,7 +195,7 @@
 				<!-- Sticky chat button -->
 				<div class="p-4 sm:p-6 lg:p-8 bg-gray-50 border-t border-gray-200">
 					<!-- Chat modal -->
-					<button
+					<!-- <button
 						class="cursor-pointer w-full py-3 px-6 bg-gradient-to-r from-[#0060a9] to-[#004b82] 
 							   hover:from-[#004b82] hover:to-[#003a66] 
 							   text-white font-semibold rounded-xl shadow-md 
@@ -211,7 +211,7 @@
 							</svg>
 							Chat seller on SuperSale
 						</span>
-					</button>
+					</button> -->
 			
 					<!-- Viber Button -->
 					<button
