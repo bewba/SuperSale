@@ -3,11 +3,11 @@ import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const { storeName, address, pickup, delivery, termsAccepted, uploadedUrl } =
+		const { storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink } =
 			await request.json();
 
-		console.log(storeName, address, pickup, delivery, termsAccepted, uploadedUrl);
-
+		console.log(storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink);
+		const viber_link = viberLink;
 		const userId = locals.user.id;
 		const sb = locals.supabase;
 
@@ -36,7 +36,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					pickup,
 					delivery,
 					terms_accepted: termsAccepted,
-					logo: uploadedUrl
+					logo: uploadedUrl,
+					viber_link
 				}
 			]);
 
