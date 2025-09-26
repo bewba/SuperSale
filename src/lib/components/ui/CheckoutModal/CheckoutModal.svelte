@@ -16,6 +16,7 @@
 	const dispatch = createEventDispatcher();
 
 	function closeModal() {
+		console.log(':hsoidsa');
 		dispatch('close');
 	}
 
@@ -47,7 +48,6 @@
 			}
 
 			sellerData = result.data;
-
 		} catch (error) {
 			console.error('Error fetching seller data:', error);
 			sellerError = error instanceof Error ? error.message : 'Failed to load seller information';
@@ -55,7 +55,6 @@
 			loadingSeller = false;
 		}
 	}
-
 
 	function openViber() {
 		window.location.href = sellerData.viber_link;
@@ -77,9 +76,9 @@
 	<div
 		role="dialog"
 		tabindex="0"
-		class="relative max-h-[95vh] w-full max-w-sm transform overflow-hidden rounded-2xl
-			   bg-white shadow-2xl transition-all duration-200 ease-in-out
-			   sm:max-w-md md:max-w-lg lg:max-w-3xl xl:max-w-5xl"
+		class="relative z-[999] max-h-[95vh] w-full max-w-sm transform overflow-hidden
+			   rounded-2xl bg-white shadow-2xl transition-all duration-200
+			   ease-in-out sm:max-w-md md:max-w-lg lg:max-w-3xl xl:max-w-5xl"
 		on:click|stopPropagation
 		on:keydown={(e) => {
 			if (e.key === 'Escape') closeModal();
@@ -88,9 +87,9 @@
 	>
 		<!-- Close button -->
 		<button
-			class="absolute top-3 right-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center
-				   rounded-full bg-black/10 text-gray-600 transition-colors duration-200
-				   hover:bg-black/20 hover:text-gray-800"
+			class="duration-200hover:text-gray-800 absolute top-3 right-3 z-[999] flex h-8 w-8 cursor-pointer
+				   items-center justify-center rounded-full bg-white text-gray-600
+				   transition-colors"
 			on:click={closeModal}
 			aria-label="Close modal"
 		>

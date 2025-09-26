@@ -97,9 +97,7 @@
 
 	function getExpiryTimestampz(hours: number): string {
 		// Current time in PH
-		const nowPH = new Date(
-			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
-		);
+		const nowPH = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
 		// Add hours
 		const expiryPH = new Date(nowPH);
 		expiryPH.setHours(expiryPH.getHours() + hours);
@@ -128,9 +126,8 @@
 			let expires_at: string;
 
 			if (deal) {
-				expires_at = deal.expiresInHours > 0
-				? getExpiryTimestampz(deal.expiresInHours)
-				: deal.expires_at;
+				expires_at =
+					deal.expiresInHours > 0 ? getExpiryTimestampz(deal.expiresInHours) : deal.expires_at;
 			} else {
 				expires_at = getExpiryTimestampz(deal.expiresInHours);
 			}
@@ -147,7 +144,7 @@
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
 
-			formData.append("expires_at", expires_at);
+			formData.append('expires_at', expires_at);
 
 			if (deal.existingImages) {
 				formData.append('existingImages', JSON.stringify(deal.existingImages));
@@ -443,14 +440,14 @@
 			>
 				🛒 My Orders
 			</button> -->
-			<button
+			<!-- <button
 				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
 					md:w-full
 					{currentView === 'activeChats' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
 				on:click={() => (currentView = 'activeChats')}
 			>
 				💬 Active Chats
-			</button>
+			</button> -->
 		</nav>
 	</aside>
 
@@ -475,12 +472,12 @@
 					colorClass="text-green-600"
 					icon="📦"
 				/>
-				<StatCard
+				<!-- <StatCard
 					title="Pending Orders"
 					value={pendingOrders.filter((order) => order.is_accepted === 'pending').length}
 					colorClass="text-orange-500"
 					icon="🚚"
-				/>
+				/> -->
 				<!-- 
 				<StatCard
 					title="My Orders"
@@ -515,7 +512,7 @@
 				acceptedOrders={pendingOrders.filter((order) => order.is_accepted === 'accepted')}
 				{loadingOrders}
 			/>
-		{:else if currentView === 'activeChats'}
+			<!-- {:else if currentView === 'activeChats'}
 			{#if loadingChats}
 				<div class="flex h-32">
 					<p class="p-4">Loading Chats...</p>
@@ -525,7 +522,7 @@
 				</div>
 			{:else}
 				<ActiveChats {enriched} />
-			{/if}
+			{/if} -->
 		{/if}
 	</main>
 </div>
@@ -546,7 +543,7 @@
 		on:deleteListing={(e) => {
 			openDeleteModal(e.detail.deal);
 			showModal = false;
-		}}	
+		}}
 	/>
 {/if}
 
