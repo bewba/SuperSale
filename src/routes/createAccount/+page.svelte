@@ -8,15 +8,18 @@
 
 	let storeName = '';
 	let address = '';
+	let contactNumber = '';
 	let pickup = true;
 	let delivery = true;
 	let termsAccepted = false;
 	let attemptedSubmit = false;
 	let loading = false;
 	let errorMessage = '';
+	let errorMessageViber = '';
 	let showTerms = false;
 	let showPrivacy = false;
 	let imageFile;
+	let viberLink = '';
 
 	let imagePreviews: string[] = [];
 	let existingImages: string[] = [];
@@ -45,6 +48,7 @@
 	function verifyStoreName(storeName: string) {
 		if (!storeName.trim()) {
 			errorMessage = 'Store name is required';
+			toastError(`Listing Deal!`, { title: 'Something went wrong', duration: 3000 });
 			return false;
 		}
 
@@ -52,15 +56,43 @@
 		return true;
 	}
 
+	function verifyViber() {
+		if (!contactNumber.trim()) {
+			errorMessageViber = 'Contact number is required';
+			return false;
+		}
+
+		const numberRegex = /^\d{10}$/;
+
+		if (!numberRegex.test(contactNumber)) {
+			errorMessageViber = 'Invalid contact number format';
+			return false;
+		}
+
+		// Build full number with +63
+		const fullNumber = `+63${contactNumber}`;
+		viberLink = `viber://chat?number=%2B63${contactNumber}`;
+
+		errorMessageViber = '';
+		return true;
+	}
+
 	async function handleSignup() {
 		attemptedSubmit = true;
-		toastInfo(`Listing Deal!`, { title: 'Your listing is being placed!', duration: 3000 });
+		toastInfo(`Your Account is being created!`, {
+			title: 'Your Account is being created!',
+			duration: 500
+		});
 
 		if (!termsAccepted) {
 			return;
 		}
 
 		if (!verifyStoreName(storeName)) {
+			return;
+		}
+
+		if (!verifyViber()) {
 			return;
 		}
 
@@ -104,19 +136,31 @@
 			const res = await fetch('/api/createAccount', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ storeName, address, pickup, delivery, termsAccepted, uploadedUrl })
+				body: JSON.stringify({
+					storeName,
+					address,
+					pickup,
+					delivery,
+					termsAccepted,
+					uploadedUrl,
+					viberLink
+				})
 			});
 
 			const data = await res.json();
 
 			if (data.success) {
+				toastSuccess(`Your account has been created!`, {
+					title: 'Account Created',
+					duration: 1000
+				});
 				goto('/protected/seller');
 			} else {
 				alert(data.error || 'Failed to register store');
 			}
 		} catch (err) {
 			console.error(err);
-			alert('Something went wrong');
+			toastError(`An error occured`, { title: 'Something went wrong', duration: 3000 });
 		} finally {
 			loading = false;
 		}
@@ -226,6 +270,29 @@
 							rows="3"
 							class="w-full resize-none rounded-xl border-2 border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-gray-900 focus:ring-0 focus:outline-none sm:px-4 sm:py-3 sm:text-base lg:py-4"
 						></textarea>
+					</div>
+
+					<!-- Store Name Input -->
+					<div class="space-y-2 sm:space-y-3">
+						<label class="block text-sm font-medium text-gray-700 sm:text-base">
+							Contact Number
+						</label>
+
+						<div
+							class="flex rounded-xl border-2 border-gray-300 bg-white focus-within:border-gray-900"
+						>
+							<span class="flex items-center px-3 text-sm text-gray-500 sm:text-base">+63</span>
+							<input
+								type="text"
+								bind:value={contactNumber}
+								placeholder="9XXXXXXXXX"
+								class="flex-1 rounded-r-xl px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none sm:px-4 sm:py-3 sm:text-base lg:py-4"
+							/>
+						</div>
+
+						{#if errorMessageViber}
+							<p class="text-xs text-red-600 sm:text-sm">{errorMessageViber}</p>
+						{/if}
 					</div>
 				</div>
 
