@@ -42,6 +42,13 @@
             >Delivery</span
           >
         {/if}
+        
+        {#if !brand.delivery && !brand.pickup}
+          <span
+            class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium"
+          >Pickup/Delivery not available.
+          </span>
+        {/if}
       </p> 
     </div>
   </div>
