@@ -12,6 +12,7 @@
 	import { goto } from '$app/navigation';
 	import supabase from '$lib/supabase/supabaseClient';
 	import imageCompression from 'browser-image-compression';
+	import { ArrowLeftIcon } from '@lucide/svelte';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -408,6 +409,19 @@
 	<!-- Sidebar / Topbar (on mobile) -->
 	<aside class="md:shadow-l-lg w-full bg-white p-4 shadow-lg md:w-64 md:border-b-0 md:p-6">
 		<nav class="flex gap-2 overflow-x-auto md:flex-col md:space-y-3">
+			<!-- Dashboard Header -->
+				<button
+					class="cursor-pointer items-center justify-center"	
+					on:click={()=>{goto('/')}}
+				>
+					<ArrowLeftIcon />	
+				</button>	
+				<!-- <img
+					src="/logo.svg"
+					alt="Seller Dashboard"
+					class="h-18 cursor-pointer object-contain drop-shadow-lg sm:h-14"
+				/> -->
+			
 			<button
 				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
 					md:w-full
@@ -452,16 +466,7 @@
 	</aside>
 
 	<!-- Main Content -->
-	<main class="flex-1 space-y-8 p-4 md:p-8">
-		<!-- Dashboard Header -->
-		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-			<img
-				src="/logo.svg"
-				alt="Seller Dashboard"
-				class="h-18 cursor-pointer object-contain drop-shadow-lg sm:h-14"
-				on:click={goto('/')}
-			/>
-		</div>
+	<main class="flex-1 space-y-8 p-4 md:p-8">	
 
 		<!-- Stats Cards -->
 		{#if currentView !== 'activeChats'}
