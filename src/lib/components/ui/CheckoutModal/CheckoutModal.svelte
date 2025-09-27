@@ -181,15 +181,9 @@
 								<div class="seller-info space-y-3">
 									<div class="flex items-center gap-3">
 										<div
-											class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100"
+											class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
 										>
-											<svg class="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-												<path
-													fill-rule="evenodd"
-													d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-													clip-rule="evenodd"
-												/>
-											</svg>
+											<img src={sellerData.logo} alt="seller-logo" class="rounded-full h-full w-full object-cover" />	
 										</div>
 										<div>
 											<p class="font-medium text-gray-900">
