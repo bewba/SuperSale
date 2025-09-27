@@ -1,18 +1,16 @@
 <script lang="ts">
-	import Orders from '$lib/components/seller/Orders.svelte';
 	import SellerListingModal from '$lib/components/seller/SellerListingModal.svelte';
-	import AcceptedOrders from '$lib/components/seller/AcceptedOrders.svelte';
 	import Listings from '$lib/components/seller/Listings.svelte';
 	import type { Deal, ChatRoom, Enriched } from '$lib/types/types';
 	import { onMount } from 'svelte';
 	import DeleteModal from '$lib/components/seller/DeleteModal.svelte';
 	import StatCard from '$lib/components/seller/StatCard.svelte';
-	import ActiveChats from '$lib/components/seller/ActiveChats.svelte';
 	import { toastSuccess, toastError, toastInfo } from '$lib/stores/toast';
 	import { goto } from '$app/navigation';
 	import supabase from '$lib/supabase/supabaseClient';
 	import imageCompression from 'browser-image-compression';
 	import { ArrowLeftIcon } from '@lucide/svelte';
+	import EditSellerInfo from '$lib/components/seller/EditSellerInfo.svelte';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -401,6 +399,28 @@
 		}
 	}
 
+  let existingData:any = null;
+  let loading = true;
+  let error: string | null = null;
+
+  onMount(async () => {
+    try {
+      const res = await fetch('/api/editAccount');
+      const result = await res.json();
+
+      if (result.success) {
+        existingData = result.data;
+      } else {
+        error = result.error;
+      }
+    } catch (err) {
+      error = 'Failed to load seller info';
+    } finally {
+      loading = false;
+    }
+  });
+
+
 	// reactive statement: runs whenever currentView changes
 	$: handleViewChange(currentView);
 </script>
@@ -430,38 +450,14 @@
 			>
 				📦 Listings
 			</button>
-			<!-- <button
-				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
-				md:w-full
-				{currentView === 'activeOrders' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
-				on:click={() => (currentView = 'activeOrders')}
-			>
-				🚚 Pending Orders
-			</button>
 			<button
 				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
-				md:w-full
-				{currentView === 'acceptedOrders' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
-				on:click={() => (currentView = 'acceptedOrders')}
-			>
-				✅ Accepted Orders
-			</button> -->
-			<!-- <button
-				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
 					md:w-full
-					{currentView === 'myOrders' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
-				on:click={() => (currentView = 'myOrders')}
+					{currentView === 'edit-profile' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
+				on:click={() => (currentView = 'edit-profile')}
 			>
-				🛒 My Orders
-			</button> -->
-			<!-- <button
-				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
-					md:w-full
-					{currentView === 'activeChats' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
-				on:click={() => (currentView = 'activeChats')}
-			>
-				💬 Active Chats
-			</button> -->
+				Edit Profile
+			</button>	
 		</nav>
 	</aside>
 
@@ -469,7 +465,7 @@
 	<main class="flex-1 space-y-8 p-4 md:p-8">	
 
 		<!-- Stats Cards -->
-		{#if currentView !== 'activeChats'}
+		{#if currentView == 'listings'}
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<StatCard
 					title="Active Listings"
@@ -477,20 +473,6 @@
 					colorClass="text-green-600"
 					icon="📦"
 				/>
-				<!-- <StatCard
-					title="Pending Orders"
-					value={pendingOrders.filter((order) => order.is_accepted === 'pending').length}
-					colorClass="text-orange-500"
-					icon="🚚"
-				/> -->
-				<!-- 
-				<StatCard
-					title="My Orders"
-					value={pendingOrders.filter(order => order.is_accepted === "pending").length}
-					colorClass="text-yellow-500"
-					icon="🛒"
-				/> 
-				-->
 			</div>
 		{/if}
 
@@ -505,29 +487,10 @@
 					openDeleteModal(e.detail);
 				}}
 			/>
-		{:else if currentView === 'activeOrders'}
-			<Orders
-				{pendingOrders}
-				{loadingOrders}
-				on:confirmOrder={(e) => confirmOrder(e.detail.orderId, e.detail.order)}
-				on:declineOrder={(e) => declineOrder(e.detail.orderId, e.detail.order)}
-			/>
-		{:else if currentView == 'acceptedOrders'}
-			<AcceptedOrders
-				acceptedOrders={pendingOrders.filter((order) => order.is_accepted === 'accepted')}
-				{loadingOrders}
-			/>
-			<!-- {:else if currentView === 'activeChats'}
-			{#if loadingChats}
-				<div class="flex h-32">
-					<p class="p-4">Loading Chats...</p>
-					<div
-						class="flex h-10 w-10 animate-spin rounded-full border-4 border-solid border-black border-t-transparent"
-					></div>
-				</div>
-			{:else}
-				<ActiveChats {enriched} />
-			{/if} -->
+		{:else if currentView === 'edit-profile'}
+			<div class="flex items-center justify-center h-full w-full">
+				<EditSellerInfo {existingData}/>
+			</div>
 		{/if}
 	</main>
 </div>
