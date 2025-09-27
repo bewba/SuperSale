@@ -456,7 +456,7 @@
 					{currentView === 'edit-profile' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
 				on:click={() => (currentView = 'edit-profile')}
 			>
-				Edit Profile
+				📝 Edit Profile
 			</button>	
 		</nav>
 	</aside>
