@@ -3,6 +3,7 @@
 	import ImageRoll from './ImageRoll.svelte';
 	import type { Deal } from '$lib/types/types';
 	import { track } from '$lib/analytics/analytics';
+	import { goto } from '$app/navigation';
 
 	export let selectedDeal: Deal;
 
@@ -180,11 +181,12 @@
 							{:else if sellerData}
 								<div class="seller-info space-y-3">
 									<div class="flex items-center gap-3">
-										<div
-											class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
+										<button
+											class="cursor-pointer flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
+											on:click={()=>{goto(`/brand/${sellerData.id}`)}}	
 										>
 											<img src={sellerData.logo} alt="seller-logo" class="rounded-full h-full w-full object-cover" />	
-										</div>
+										</button>
 										<div>
 											<p class="font-medium text-gray-900">
 												<strong>{sellerData.store_name}</strong>
@@ -209,6 +211,13 @@
 														Delivery
 													</span>
 												{/if}
+												{#if !sellerData.delivery && !sellerData.pickup}
+													<span
+														class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium"
+													>
+														Pickup/Delivery not available.
+													</span>
+												{/if}	
 											</p>
 										</div>
 									</div>
