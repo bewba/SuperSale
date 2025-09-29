@@ -167,11 +167,12 @@
 			console.log('Unsubscribed from chat_rooms collection');
 		}
 	});
+
 </script>
 
 <div class="min-h-[100vh]">
 	<!-- Header -->
-	<Header />
+	<Header userStatus={user.role}/>
 
 	<!-- Hero -->
 	<!-- <Hero /> -->
