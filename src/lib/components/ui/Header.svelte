@@ -2,6 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
+	export let userStatus:string = "";
+	const message = userStatus == "authenticated" 
+		? "Seller Dashboard"
+		: "Want to sell your surplus?";
+
 	let loading = false;
 	let scrolled = false;
 	// Track if page is scrolling
@@ -59,7 +64,7 @@
 				</svg>
 				<span>Loading...</span>
 			{:else}
-				Want to sell your surplus?
+				{ message }
 			{/if}
 		</button>
 	</div>
