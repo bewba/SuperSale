@@ -97,9 +97,7 @@
 
 	function getExpiryTimestampz(hours: number): string {
 		// Current time in PH
-		const nowPH = new Date(
-			new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" })
-		);
+		const nowPH = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
 		// Add hours
 		const expiryPH = new Date(nowPH);
 		expiryPH.setHours(expiryPH.getHours() + hours);
@@ -128,9 +126,8 @@
 			let expires_at: string;
 
 			if (deal) {
-				expires_at = deal.expiresInHours > 0
-				? getExpiryTimestampz(deal.expiresInHours)
-				: deal.expires_at;
+				expires_at =
+					deal.expiresInHours > 0 ? getExpiryTimestampz(deal.expiresInHours) : deal.expires_at;
 			} else {
 				expires_at = getExpiryTimestampz(deal.expiresInHours);
 			}
@@ -147,7 +144,7 @@
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
 
-			formData.append("expires_at", expires_at);
+			formData.append('expires_at', expires_at);
 
 			if (deal.existingImages) {
 				formData.append('existingImages', JSON.stringify(deal.existingImages));
@@ -364,47 +361,47 @@
 		loadDeals();
 	});
 
-	async function loadChats() {
-		try {
-			const res = await fetch('/protected/seller/api/getChatrooms');
+	// async function loadChats() {
+	// 	try {
+	// 		const res = await fetch('/protected/seller/api/getChatrooms');
 
-			if (!res.ok) {
-				throw new Error(`Failed to load chats: ${res.status}`);
-			}
+	// 		if (!res.ok) {
+	// 			throw new Error(`Failed to load chats: ${res.status}`);
+	// 		}
 
-			const data = (await res.json()) as { records: ChatRoom[] };
+	// 		const data = (await res.json()) as { records: ChatRoom[] };
 
-			return data.records;
-		} catch (err) {
-			console.error('Error loading chats:', err);
-			return null;
-		}
-	}
+	// 		return data.records;
+	// 	} catch (err) {
+	// 		console.error('Error loading chats:', err);
+	// 		return null;
+	// 	}
+	// }
 
 	let currentView: string = 'listings';
 
-	async function handleViewChange(view: string) {
-		console.log('View changed to:', view);
-		// you can call your fetch function here
+	// async function handleViewChange(view: string) {
+	// 	console.log('View changed to:', view);
+	// 	// you can call your fetch function here
 
-		if (view === 'activeChats') {
-			loadingChats = true;
-			chatRooms = await loadChats();
+	// 	if (view === 'activeChats') {
+	// 		loadingChats = true;
+	// 		chatRooms = await loadChats();
 
-			const enrichedRes = await fetch('/protected/seller/api/mapChatrooms', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(chatRooms)
-			});
+	// 		const enrichedRes = await fetch('/protected/seller/api/mapChatrooms', {
+	// 			method: 'POST',
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify(chatRooms)
+	// 		});
 
-			enriched = await enrichedRes.json();
+	// 		enriched = await enrichedRes.json();
 
-			loadingChats = false;
-		}
-	}
+	// 		loadingChats = false;
+	// 	}
+	// }
 
 	// reactive statement: runs whenever currentView changes
-	$: handleViewChange(currentView);
+	//$: handleViewChange(currentView);
 </script>
 
 <div class="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100 md:flex-row">
@@ -443,14 +440,14 @@
 			>
 				🛒 My Orders
 			</button> -->
-			<button
+			<!-- <button
 				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
 					md:w-full
 					{currentView === 'activeChats' ? 'bg-emerald-200 text-emerald-800' : 'text-gray-700'}"
 				on:click={() => (currentView = 'activeChats')}
 			>
 				💬 Active Chats
-			</button>
+			</button> -->
 		</nav>
 	</aside>
 
@@ -546,7 +543,7 @@
 		on:deleteListing={(e) => {
 			openDeleteModal(e.detail.deal);
 			showModal = false;
-		}}	
+		}}
 	/>
 {/if}
 

@@ -22,16 +22,16 @@
 </script>
 
 <div class="relative w-full overflow-hidden">
-  {#if featuredDeals.length > 0}
-    <div
-      class="flex transition-transform duration-700 ease-in-out"
-      style={`transform: translateX(-${current * 100}%)`}
-    >
-      {#each featuredDeals as deal (deal.id)}
-        <div class="w-full flex-shrink-0 px-2 sm:px-4">
-          <HeroCard {deal} />
-        </div>
-      {/each}
-    </div>
-  {/if}
+	{#if featuredDeals.length > 0}
+		<div
+			class="flex transition-transform duration-700 ease-in-out"
+			style={`transform: translateX(-${current * 100}%)`}
+		>
+			{#each featuredDeals as deal (deal.id)}
+				<div class="w-full flex-shrink-0 px-2 sm:px-4">
+					<HeroCard {deal} />
+				</div>
+			{/each}
+		</div>
+	{/if}
 </div>
