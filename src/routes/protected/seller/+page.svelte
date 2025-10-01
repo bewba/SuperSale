@@ -360,69 +360,68 @@
 		loadDeals();
 	});
 
-	async function loadChats() {
-		try {
-			const res = await fetch('/protected/seller/api/getChatrooms');
+	// async function loadChats() {
+	// 	try {
+	// 		const res = await fetch('/protected/seller/api/getChatrooms');
 
-			if (!res.ok) {
-				throw new Error(`Failed to load chats: ${res.status}`);
-			}
+	// 		if (!res.ok) {
+	// 			throw new Error(`Failed to load chats: ${res.status}`);
+	// 		}
 
-			const data = (await res.json()) as { records: ChatRoom[] };
+	// 		const data = (await res.json()) as { records: ChatRoom[] };
 
-			return data.records;
-		} catch (err) {
-			console.error('Error loading chats:', err);
-			return null;
-		}
-	}
+	// 		return data.records;
+	// 	} catch (err) {
+	// 		console.error('Error loading chats:', err);
+	// 		return null;
+	// 	}
+	// }
 
 	let currentView: string = 'listings';
 
-	async function handleViewChange(view: string) {
-		console.log('View changed to:', view);
-		// you can call your fetch function here
+	// async function handleViewChange(view: string) {
+	// 	console.log('View changed to:', view);
+	// 	// you can call your fetch function here
 
-		if (view === 'activeChats') {
-			loadingChats = true;
-			chatRooms = await loadChats();
+	// 	if (view === 'activeChats') {
+	// 		loadingChats = true;
+	// 		chatRooms = await loadChats();
 
-			const enrichedRes = await fetch('/protected/seller/api/mapChatrooms', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(chatRooms)
-			});
+	// 		const enrichedRes = await fetch('/protected/seller/api/mapChatrooms', {
+	// 			method: 'POST',
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify(chatRooms)
+	// 		});
 
-			enriched = await enrichedRes.json();
+	// 		enriched = await enrichedRes.json();
 
-			loadingChats = false;
+	// 		loadingChats = false;
+	// 	}
+	// }
+
+	let existingData: any = null;
+	let loading = true;
+	let error: string | null = null;
+
+	onMount(async () => {
+		try {
+			const res = await fetch('/api/editAccount');
+			const result = await res.json();
+
+			if (result.success) {
+				existingData = result.data;
+			} else {
+				error = result.error;
+			}
+		} catch (err) {
+			error = 'Failed to load seller info';
+		} finally {
+			loading = false;
 		}
-	}
-
-  let existingData:any = null;
-  let loading = true;
-  let error: string | null = null;
-
-  onMount(async () => {
-    try {
-      const res = await fetch('/api/editAccount');
-      const result = await res.json();
-
-      if (result.success) {
-        existingData = result.data;
-      } else {
-        error = result.error;
-      }
-    } catch (err) {
-      error = 'Failed to load seller info';
-    } finally {
-      loading = false;
-    }
-  });
-
+	});
 
 	// reactive statement: runs whenever currentView changes
-	$: handleViewChange(currentView);
+	//$: handleViewChange(currentView);
 </script>
 
 <div class="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100 md:flex-row">
@@ -430,18 +429,20 @@
 	<aside class="md:shadow-l-lg w-full bg-white p-4 shadow-lg md:w-64 md:border-b-0 md:p-6">
 		<nav class="flex gap-2 overflow-x-auto md:flex-col md:space-y-3">
 			<!-- Dashboard Header -->
-				<button
-					class="cursor-pointer items-center justify-center"	
-					on:click={()=>{goto('/')}}
-				>
-					<ArrowLeftIcon />	
-				</button>	
-				<!-- <img
+			<button
+				class="cursor-pointer items-center justify-center"
+				on:click={() => {
+					goto('/');
+				}}
+			>
+				<ArrowLeftIcon />
+			</button>
+			<!-- <img
 					src="/logo.svg"
 					alt="Seller Dashboard"
 					class="h-18 cursor-pointer object-contain drop-shadow-lg sm:h-14"
 				/> -->
-			
+
 			<button
 				class="flex-1 cursor-pointer rounded-lg px-4 py-2 text-left font-medium transition hover:bg-emerald-100
 					md:w-full
@@ -457,13 +458,12 @@
 				on:click={() => (currentView = 'edit-profile')}
 			>
 				📝 Edit Profile
-			</button>	
+			</button>
 		</nav>
 	</aside>
 
 	<!-- Main Content -->
-	<main class="flex-1 space-y-8 p-4 md:p-8">	
-
+	<main class="flex-1 space-y-8 p-4 md:p-8">
 		<!-- Stats Cards -->
 		{#if currentView == 'listings'}
 			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -488,8 +488,8 @@
 				}}
 			/>
 		{:else if currentView === 'edit-profile'}
-			<div class="flex items-center justify-center h-full w-full">
-				<EditSellerInfo {existingData}/>
+			<div class="flex h-full w-full items-center justify-center">
+				<EditSellerInfo {existingData} />
 			</div>
 		{/if}
 	</main>
