@@ -5,6 +5,7 @@
 	import BrandInfo from '$lib/components/brand/BrandInfo.svelte';
 	import ActiveListings from '$lib/components/ui/ActiveListings/ActiveListings.svelte';
 	import CheckoutModal from '$lib/components/ui/CheckoutModal/CheckoutModal.svelte';
+	import NavigationFooter from '$lib/components/NavigationFooter.svelte';
 	import type { Deal } from '$lib/types/types';
 
 	export let data: { seller: any; error?: string };
@@ -62,18 +63,22 @@
 		}
 	}
 
-	async function loadProducts(offset = 0, limit = 10): Promise<{ data: Deal[]; hasMore: boolean }> {
+	async function loadProducts(
+		sellerId: string,
+		offset = 0,
+		limit = 10
+	): Promise<{ data: Deal[]; hasMore: boolean }> {
 		const response = await fetch(
 			`/api/fetchSellerListings?sellerId=${sellerId}&offset=${offset}&limit=${limit}`
 		);
-		return await res.json();
+		return await response.json();
 	}
 
 	async function loadMore() {
 		if (loading || !hasMore) return;
 		loading = true;
 
-		const result = await loadProducts(offset, limit);
+		const result = await loadProducts(data.seller.id, offset, limit);
 		deals = [...deals, ...result.data]; // append new items
 		hasMore = result.hasMore;
 		offset += limit;
@@ -85,39 +90,39 @@
 		await loadMore(); // load first batch
 	});
 
-	async function fetchDeals(sellerId: string, offset = 0, limit = 10) {
-		try {
-			loading = true;
-			error = null;
+	// async function fetchDeals(sellerId: string, offset = 0, limit = 10) {
+	// 	try {
+	// 		loading = true;
+	// 		error = null;
 
-			const response = await fetch(
-				`/api/fetchSellerListings?sellerId=${sellerId}&offset=${offset}&limit=${limit}`
-			);
+	// 		const response = await fetch(
+	// 			`/api/fetchSellerListings?sellerId=${sellerId}&offset=${offset}&limit=${limit}`
+	// 		);
 
-			if (!response.ok) {
-				throw new Error(`Failed to fetch deals: ${response.statusText}`);
-			}
+	// 		if (!response.ok) {
+	// 			throw new Error(`Failed to fetch deals: ${response.statusText}`);
+	// 		}
 
-			const result = await response.json();
+	// 		const result = await response.json();
 
-			if (result.error) {
-				throw new Error(result.error);
-			}
+	// 		if (result.error) {
+	// 			throw new Error(result.error);
+	// 		}
 
-			deals = result.data ?? [];
-		} catch (err) {
-			console.error('Error fetching deals:', err);
-			error = err instanceof Error ? err.message : 'Failed to load deals';
-		} finally {
-			loading = false;
-		}
-	}
+	// 		deals = result.data ?? [];
+	// 	} catch (err) {
+	// 		console.error('Error fetching deals:', err);
+	// 		error = err instanceof Error ? err.message : 'Failed to load deals';
+	// 	} finally {
+	// 		loading = false;
+	// 	}
+	// }
 
-	onMount(() => {
-		if (data.seller?.id) {
-			fetchDeals(data.seller.id);
-		}
-	});
+	// onMount(() => {
+	// 	// if (data.seller?.id) {
+	// 	// 	fetchDeals(data.seller.id);
+	// 	// }
+	// });
 </script>
 
 <div class="min-h-[100vh]">
@@ -140,6 +145,8 @@
 		<!-- Checkout Modal -->
 	</div>
 </div>
+
+<NavigationFooter />
 
 {#if openCheckoutModal}
 	<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
