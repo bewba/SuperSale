@@ -70,14 +70,14 @@
   {/if}
 
   <!-- Hover overlay with "View Deals" text -->
-  <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 
+  <!-- <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 
               transition-opacity duration-300 flex items-center justify-center">
     <div class="bg-white/90 backdrop-blur-sm text-gray-900 px-4 py-2 rounded-full
                 font-semibold text-sm md:text-base shadow-lg
                 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
       View Deals
     </div>
-  </div>
+  </div> -->
 </button>
 
 <style>

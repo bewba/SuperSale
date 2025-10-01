@@ -1,52 +1,3 @@
-<!-- <script lang="ts">
-	import DealCard from '$lib/components/DealCard.svelte';
-	import type { Deal } from '$lib/types/types';
-	import { onMount } from 'svelte';
-	import { createEventDispatcher } from 'svelte';
-
-	export let deals: Deal[] = [];
-	export let loading: boolean = false;
-	const dispatch = createEventDispatcher();
-
-	let currentIndex = 0;
-	let itemsPerView = 5;
-
-	// Adjust items per view based on screen size
-	function updateItemsPerView() {
-		if (window.innerWidth < 640) {
-			itemsPerView = 1; // Mobile (sm)
-		} else if (window.innerWidth < 1024) {
-			itemsPerView = 2; // Tablet (md)
-		} else if (window.innerWidth < 1280) {
-			itemsPerView = 3; // Small laptop (lg)
-		} else {
-			itemsPerView = 5; // Desktop (xl and above)
-		}
-	}
-
-	function handleCheckout(event: CustomEvent) {
-		console.log(event.detail);
-		dispatch('checkout', event.detail);
-	}
-
-	onMount(() => {
-		updateItemsPerView();
-		window.addEventListener('resize', updateItemsPerView);
-		return () => window.removeEventListener('resize', updateItemsPerView);
-	});
-
-	function next() {
-		if (deals.length <= itemsPerView) return;
-		currentIndex = (currentIndex + 1) % (deals.length - itemsPerView + 1);
-	}
-
-	function prev() {
-		if (deals.length <= itemsPerView) return;
-		currentIndex =
-			(currentIndex - 1 + (deals.length - itemsPerView + 1)) % (deals.length - itemsPerView + 1);
-	}
-</script> -->
-
 <script lang="ts">
 	import DealCard from '$lib/components/DealCard.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -122,16 +73,16 @@
 </script>
 
 <div class="mt-4 mx-2" id="hotdeals">
-	<h1 class="mb-2 text-4xl font-bold">This Week's Hotdeals!</h1>
+	<h1 class="mb-2 text-4xl font-bold">Today's hottest deals for you!</h1>
 
 	<!-- Slider container -->
-	<div class="relative">
+	<div class="relative group">
 		<div
 			id="deals-slider"
 			class="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-scroll scroll-smooth"
 		>
 			{#each deals as deal}
-				<div class="w-[90%] shrink-0 snap-center lg:w-1/2 xl:w-1/3 md:1/2">
+				<div class="w-[90%] shrink-0 snap-center lg:w-1/2 xl:w-1/3 md:w-1/2">
 					<DealCard {deal} on:select={(e) => handleSelect(e.detail.deal)} />
 				</div>
 			{/each}
@@ -140,15 +91,17 @@
 		<!-- Navigation buttons  -->
 		<button
 			on:click={prev}
-			class="absolute top-1/2 left-0 -translate-y-1/2 cursor-pointer rounded-r bg-black/50 py-1 text-white"
+			class="cursor-pointer absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 md:opacity-0 md:group-hover:opacity-100"
+			aria-label="Previous deals"
 		>
-			<ChevronLeft />
+			<ChevronLeft class="w-6 h-6" />
 		</button>
 		<button
 			on:click={next}
-			class="absolute top-1/2 right-0 -translate-y-1/2 cursor-pointer rounded-l bg-black/50 py-1 text-white"
+			class="cursor-pointer absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 md:opacity-0 md:group-hover:opacity-100"
+			aria-label="Next deals"
 		>
-			<ChevronRight />
+			<ChevronRight class="w-6 h-6" />
 		</button>
 	</div>
 </div>
