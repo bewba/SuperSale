@@ -11,6 +11,7 @@
 	import imageCompression from 'browser-image-compression';
 	import { ArrowLeftIcon } from '@lucide/svelte';
 	import EditSellerInfo from '$lib/components/seller/EditSellerInfo.svelte';
+	import NavigationFooter from '$lib/components/NavigationFooter.svelte';
 
 	let myDeals: Deal[] = [];
 	let chatRooms: ChatRoom[] = [];
@@ -494,6 +495,8 @@
 		{/if}
 	</main>
 </div>
+
+<NavigationFooter />
 
 {#if showModal}
 	<SellerListingModal
