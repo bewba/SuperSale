@@ -20,9 +20,46 @@
 	let showPrivacy = false;
 	let imageFile;
 	let viberLink = '';
+	let locating = false;
 
 	let imagePreviews: string[] = [];
 	let existingImages: string[] = [];
+
+	async function getCurrentLocation() {
+		try {
+			locating = true;
+			if (!navigator.geolocation) {
+				toastError('Geolocation not supported in this browser');
+				locating = false;
+				return;
+			}
+
+			navigator.geolocation.getCurrentPosition(
+				async (position) => {
+					const { latitude, longitude } = position.coords;
+
+					// Call reverse geocoding
+					const res = await fetch(
+						`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+					);
+					const data = await res.json();
+
+					address = data.display_name || `${latitude}, ${longitude}`;
+					toastSuccess('Location detected', { title: 'Success', duration: 2000 });
+					locating = false;
+				},
+				(error) => {
+					console.error(error);
+					toastError('Unable to get your location');
+					locating = false;
+				}
+			);
+		} catch (err) {
+			console.error(err);
+			toastError('Something went wrong');
+			locating = false;
+		}
+	}
 
 	function handleImageUpload(event: Event) {
 		const target = event.target as HTMLInputElement;
@@ -261,15 +298,53 @@
 
 					<!-- Address Input -->
 					<div class="space-y-2 sm:space-y-3">
-						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base"
-							>Address</label
-						>
+						<label for="" class="block text-sm font-medium text-gray-700 sm:text-base">
+							Address
+						</label>
 						<textarea
 							bind:value={address}
 							placeholder="Enter your store address"
 							rows="3"
-							class="w-full resize-none rounded-xl border-2 border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-gray-900 focus:ring-0 focus:outline-none sm:px-4 sm:py-3 sm:text-base lg:py-4"
+							class="w-full resize-none rounded-xl border-2 border-gray-300 bg-white px-3 py-2
+								   text-sm text-gray-900 placeholder-gray-400 transition-colors
+								   focus:border-gray-900 focus:ring-0 focus:outline-none
+								   sm:px-4 sm:py-3 sm:text-base lg:py-4"
 						></textarea>
+
+						<button
+							type="button"
+							on:click={getCurrentLocation}
+							class="mt-2 flex w-full items-center justify-center rounded-lg bg-[#0060a9] px-4 py-2
+							   text-sm font-medium text-white transition-colors hover:bg-[#005090]
+							   disabled:cursor-not-allowed disabled:bg-gray-400 sm:w-auto"
+							disabled={locating}
+						>
+							{#if locating}
+								<svg
+									class="h-4 w-4 animate-spin text-white sm:h-5 sm:w-5"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+									></path>
+								</svg>
+								<span class="ml-2">Getting Location...</span>
+							{:else}
+								📍 Use My Current Location
+							{/if}
+						</button>
 					</div>
 
 					<!-- Store Name Input -->
