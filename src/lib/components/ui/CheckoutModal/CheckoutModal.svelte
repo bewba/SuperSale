@@ -132,19 +132,22 @@
 
 						<!-- Price section with better visual hierarchy -->
 						<div
-							class="flex flex-wrap items-baseline gap-3 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-red-50 p-4"
+							class="flex flex-col flex-wrap items-baseline rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-red-50 p-4"
 						>
-							<span class="text-2xl font-bold text-orange-600 sm:text-3xl">
-								₱{selectedDeal.discount_price.toFixed(2)}
-							</span>
-							<span class="text-base text-gray-500 line-through sm:text-lg">
-								₱{selectedDeal.original_price.toFixed(2)}
-							</span>
-							<span class="rounded-md border bg-white px-2 py-1 text-sm text-gray-600">
-								per pc.
-							</span>
+              <div>
+                <span class="text-3xl font-bold text-orange-600 sm:text-3xl">
+                  ₱{selectedDeal.discount_price.toFixed(2)}
+                </span>
+                <span class="text-sm text-gray-600">
+                  {selectedDeal.unit}
+                </span>
+              </div>
+              <span class="text-base text-gray-500 line-through sm:text-lg">
+							  ₱{selectedDeal.original_price.toFixed(2)} 
+              </span>      
 						</div>
-					</div>
+				    	
+          </div>
 
 					<!-- Seller info section -->
 					<div class="space-y-4">

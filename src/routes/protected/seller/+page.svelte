@@ -143,6 +143,7 @@
 			formData.append('category', deal.category);
 			formData.append('contactInfo', deal.contactInfo);
 			formData.append('id', deal.id);
+			formData.append('unit', deal.unit);
 
 			formData.append('expires_at', expires_at);
 

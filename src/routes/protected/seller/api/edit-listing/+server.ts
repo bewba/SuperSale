@@ -18,6 +18,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const reason = formData.get('description') as string;
 		const reason_category = formData.get('category') as string;
 		const contact_information = formData.get('contactInfo') as string;
+		const unit = formData.get('unit') as string;
 
 		const expires_at = formData.get('expires_at') as string | null;
 
@@ -39,7 +40,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			reason,
 			reason_category,
 			expires_at,
-			contact_information
+			contact_information,
+      unit,
 		};
 
 		// If a new file is uploaded, update image

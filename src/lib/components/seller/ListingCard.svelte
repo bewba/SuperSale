@@ -80,7 +80,7 @@
 				class="rounded-lg bg-[#f76800] px-2 py-1 text-base sm:text-lg md:text-xl font-bold text-white inline-flex items-baseline gap-1 whitespace-nowrap"
 			>
 				₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-				<span class="text-[10px] sm:text-xs underline">per pc.</span>
+				<span class="text-[10px] sm:text-xs underline">{deal.unit}</span>
 			</h2>
 		</div>
 	</div>
