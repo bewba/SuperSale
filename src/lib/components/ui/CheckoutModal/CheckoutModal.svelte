@@ -277,20 +277,21 @@
 
 					<!-- Viber Button -->
 					<button
-						on:click={openViber}
-						class="mt-2 w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#665CAC] to-[#7B68EE]
-		px-6 py-3
-		font-semibold text-white shadow-md transition-all
-		duration-200 ease-in-out hover:-translate-y-0.5 hover:from-[#5A4F9A]
-		hover:to-[#6A5ACD] hover:shadow-lg
-		focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none
-		active:scale-95 active:transform"
-					>
-						<span class="flex items-center justify-center gap-2">
-							<img class="h-6" src="/viber.webp" alt="viber-logo" />
-							Chat seller on Viber
-						</span>
-					</button>
+            on:click={openViber}
+            class="relative mt-2 w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#665CAC] to-[#7B68EE]
+            px-6 py-3
+            font-semibold text-white shadow-md transition-all
+            duration-200 ease-in-out hover:-translate-y-0.5 hover:from-[#5A4F9A]
+            hover:to-[#6A5ACD] hover:shadow-lg
+            focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none
+            active:scale-95 active:transform
+            before:absolute before:inset-[-3px] before:rounded-xl before:bg-purple-400 before:opacity-75 before:animate-ping"
+          >
+            <span class="relative flex items-center justify-center gap-2 z-10">
+              <img class="h-6" src="/viber.webp" alt="viber-logo" />
+              Chat seller on Viber
+            </span>
+          </button>
 				</div>
 			</div>
 		</div>
