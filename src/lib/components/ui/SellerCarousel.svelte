@@ -112,7 +112,4 @@
 		-ms-overflow-style: none;
 		scrollbar-width: none;
 	}
-	.selected {
-		filter: drop-shadow(0 0 8px rgba(249, 115, 22, 1));
-	}
 </style>
