@@ -98,6 +98,7 @@
               inline-flex items-baseline gap-1 whitespace-nowrap text-[clamp(1rem,2.5vw,1.5rem)]"
           >
             ₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <span class="text-xs font-medium">{deal.unit}</span> 
           </h2>
           <p class="text-gray-300 line-through text-[clamp(0.7rem,1.5vw,0.875rem)] mt-0.5">
             ₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
