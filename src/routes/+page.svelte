@@ -26,68 +26,68 @@
 	let loading = false;
 
 	// Notification state
-	let hasUnseenMessages = false;
-	let pb: any;
-	let unsubscribe: (() => void) | null = null;
+	// let hasUnseenMessages = false;
+	// let pb: any;
+	// let unsubscribe: (() => void) | null = null;
 
-	type Chat = {
-		id: string;
-		productImage: string;
-		productName: string;
-		contactPerson: string;
-		lastMessageTime: string;
-		lastMessage: string;
-		seen_by: Record<string, string>;
-	};
+	// type Chat = {
+	// 	id: string;
+	// 	productImage: string;
+	// 	productName: string;
+	// 	contactPerson: string;
+	// 	lastMessageTime: string;
+	// 	lastMessage: string;
+	// 	seen_by: Record<string, string>;
+	// };
 
-	function computeUnseen(chat: Chat): boolean {
-		return !chat.seen_by?.[user.id];
-	}
+	// function computeUnseen(chat: Chat): boolean {
+	// 	return !chat.seen_by?.[user.id];
+	// }
 
-	async function checkUnseenMessages() {
-		try {
-			const res = await fetch(`/api/loadActiveChats?page=1&perPage=50`); // Get more chats to check
-			if (!res.ok) return;
+	// async function checkUnseenMessages() {
+	// 	try {
+	// 		const res = await fetch(`/api/loadActiveChats?page=1&perPage=50`); // Get more chats to check
+	// 		if (!res.ok) return;
 
-			const data = await res.json();
-			const chats = data.activeChats || [];
+	// 		const data = await res.json();
+	// 		const chats = data.activeChats || [];
 
-			// Check if any chat has unseen messages
-			hasUnseenMessages = chats.some((chat: Chat) => computeUnseen(chat));
-			console.log('Has unseen messages:', hasUnseenMessages);
-		} catch (err) {
-			console.error('Error checking unseen messages:', err);
-		}
-	}
+	// 		// Check if any chat has unseen messages
+	// 		hasUnseenMessages = chats.some((chat: Chat) => computeUnseen(chat));
+	// 		console.log('Has unseen messages:', hasUnseenMessages);
+	// 	} catch (err) {
+	// 		console.error('Error checking unseen messages:', err);
+	// 	}
+	// }
 
-	async function setupRealtimeSubscription() {
-		if (!browser || !user?.id) return;
+	// async function setupRealtimeSubscription() {
+	// 	if (!browser || !user?.id) return;
 
-		try {
-			pb = getPb();
-			let userId = user.id;
+	// 	try {
+	// 		pb = getPb();
+	// 		let userId = user.id;
 
-			// Subscribe to chat_rooms collection changes
-			unsubscribe = await pb.collection('chat_rooms').subscribe('*', async (e) => {
-				const { action, record } = e;
+	// 		// Subscribe to chat_rooms collection changes
+	// 		unsubscribe = await pb.collection('chat_rooms').subscribe('*', async (e) => {
+	// 			const { action, record } = e;
 
-				// Only handle changes for rooms where current user is buyer or seller
-				if (record.buyer === userId || record.seller === userId) {
-					if (action === 'create' || action === 'update') {
-						// Check for unseen messages whenever there's a change
-						await checkUnseenMessages();
-					} else if (action === 'delete') {
-						// Recheck unseen messages after deletion
-						await checkUnseenMessages();
-					}
-				}
-			});
+	// 			// Only handle changes for rooms where current user is buyer or seller
+	// 			if (record.buyer === userId || record.seller === userId) {
+	// 				if (action === 'create' || action === 'update') {
+	// 					// Check for unseen messages whenever there's a change
+	// 					await checkUnseenMessages();
+	// 				} else if (action === 'delete') {
+	// 					// Recheck unseen messages after deletion
+	// 					await checkUnseenMessages();
+	// 				}
+	// 			}
+	// 		});
 
-			console.log('Subscribed to chat_rooms collection for notifications');
-		} catch (err) {
-			console.error('Error setting up real-time subscription:', err);
-		}
-	}
+	// 		console.log('Subscribed to chat_rooms collection for notifications');
+	// 	} catch (err) {
+	// 		console.error('Error setting up real-time subscription:', err);
+	// 	}
+	// }
 
 	function openCheckout(event: CustomEvent) {
 		selectedDeal = event;
@@ -101,37 +101,37 @@
 		selectedDeal = null;
 	}
 
-	function handleFloatingChat() {
-		goto('/chatRooms');
-	}
+	// function handleFloatingChat() {
+	// 	goto('/chatRooms');
+	// }
 
-	async function handleChat(event: CustomEvent) {
-		try {
-			const selectedDeal = event.detail.selectedDeal;
-			console.log('hello');
-			console.log('Selected deal:', selectedDeal);
+	// async function handleChat(event: CustomEvent) {
+	// 	try {
+	// 		const selectedDeal = event.detail.selectedDeal;
+	// 		console.log('hello');
+	// 		console.log('Selected deal:', selectedDeal);
 
-			const res = await fetch('/api/create-chatroom', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ selectedDeal })
-			});
+	// 		const res = await fetch('/api/create-chatroom', {
+	// 			method: 'POST',
+	// 			headers: { 'Content-Type': 'application/json' },
+	// 			body: JSON.stringify({ selectedDeal })
+	// 		});
 
-			const data = await res.json();
-			console.log('Chatroom response:', data);
+	// 		const data = await res.json();
+	// 		console.log('Chatroom response:', data);
 
-			if (data.success) {
-				// maybe redirect to chatroom
-				console.log(data.chatroomId);
-				goto(`/chat/${data.chatroomId}`);
-			} else {
-				console.error('Failed to create chatroom:', data.error);
-			}
-		} catch (err) {
-			console.error('Error creating chatroom:', err);
-			closeCheckout();
-		}
-	}
+	// 		if (data.success) {
+	// 			// maybe redirect to chatroom
+	// 			console.log(data.chatroomId);
+	// 			goto(`/chat/${data.chatroomId}`);
+	// 		} else {
+	// 			console.error('Failed to create chatroom:', data.error);
+	// 		}
+	// 	} catch (err) {
+	// 		console.error('Error creating chatroom:', err);
+	// 		closeCheckout();
+	// 	}
+	// }
 
 	async function loadProducts(offset = 0, limit = 10): Promise<{ data: Deal[]; hasMore: boolean }> {
 		const res = await fetch(`/api/fetchProducts?offset=${offset}&limit=${limit}`);
@@ -153,26 +153,25 @@
 	onMount(async () => {
 		await loadMore(); // load first batch
 
-		// Check for unseen messages on page load
-		if (user?.id) {
-			await checkUnseenMessages();
-			await setupRealtimeSubscription();
-		}
+		// // Check for unseen messages on page load
+		// if (user?.id) {
+		// 	await checkUnseenMessages();
+		// 	await setupRealtimeSubscription();
+		// }
 	});
 
 	// Cleanup subscription on destroy
-	onDestroy(() => {
-		if (unsubscribe) {
-			unsubscribe();
-			console.log('Unsubscribed from chat_rooms collection');
-		}
-	});
-
+	// onDestroy(() => {
+	// 	if (unsubscribe) {
+	// 		unsubscribe();
+	// 		console.log('Unsubscribed from chat_rooms collection');
+	// 	}
+	// });
 </script>
 
 <div class="min-h-[100vh]">
 	<!-- Header -->
-	<Header userStatus={user.role}/>
+	<Header userStatus={user.role} />
 
 	<!-- Hero -->
 	<!-- <Hero /> -->
@@ -213,6 +212,38 @@
 			<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
 		</div>
 	{/if}
+
+	<!-- <button
+		class="floating-chat-btn relative flex h-36 w-36 items-center justify-center rounded-full shadow-lg"
+		on:click={handleFloatingChat}
+		aria-label="Open chat"
+		style="background: linear-gradient(135deg, #FFA500, #FF7F00);"
+	> -->
+	<!-- Chat Icon SVG -->
+	<!-- <svg
+			width="48"
+			height="48"
+			viewBox="0 0 24 24"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			class="chat-icon text-white"
+		>
+			<path
+				d="M20 2H4C2.9 2 2 2.9 2 4V16C2 17.1 2.9 18 4 18H6L10 22L14 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z"
+				fill="currentColor"
+			/>
+			<circle cx="8" cy="10" r="1" fill="white" />
+			<circle cx="12" cy="10" r="1" fill="white" />
+			<circle cx="16" cy="10" r="1" fill="white" />
+		</svg> -->
+
+	<!-- Conditional Notification dot - only show when there are unseen messages -->
+	<!-- {#if hasUnseenMessages}
+			<span
+				class="notification-dot absolute top-1 right-1 h-4 w-4 rounded-full border-2 border-white bg-red-500"
+			></span>
+		{/if} -->
+	<!-- </button> -->
 
 	<!-- Footer -->
 	<Footer />
