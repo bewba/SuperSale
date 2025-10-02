@@ -49,60 +49,63 @@
   class="group relative w-full aspect-[3/2] cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
   onclick={selectDeal}
 >
-	<!-- Background Image -->
-	<img
-		src={deal.image_list && deal.image_list.length > 0
-			? deal.image_list[0]
-			: deal.image}
-		alt={deal.title}
-		class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-	/>
-	
-	<!-- Gradient Overlay -->
-	<div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/80"></div>
-	
-	<!-- Content Container -->
-	<div class="relative h-full flex flex-col justify-between p-4 sm:p-5 md:p-6">
-		<!-- Top Section -->
-		<div class="flex items-start justify-between gap-3">
-			<!-- Discount Badge -->
-			<div class="relative group/badge">
-				<p
-			    class="text-white rounded-lg bg-gradient-to-r from-red-700 via-red-600
-		         to-red-500 px-2 py-1 text-2xl font-bold tracking-wide uppercase shadow-lg
-		         sm:px-3 sm:py-2 sm:text-3xl md:px-4 md:py-2.5
-		         md:text-4xl lg:px-5 lg:py-3 lg:text-5xl"
-		    >
-			    {deal.discount_percent}% OFF
-		    </p>
-			</div>
+  <!-- Background Image -->
+  <img
+    src={deal.image_list && deal.image_list.length > 0
+      ? deal.image_list[0]
+      : deal.image}
+    alt={deal.title}
+    class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+  />
+  
+  <!-- Gradient Overlay -->
+  <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/80"></div>
+  
+  <!-- Content Container -->
+  <div class="relative h-full flex flex-col justify-between p-[4%]">
+    <!-- Top Section -->
+    <div class="flex items-start justify-between gap-[2%]">
+      <!-- Discount Badge -->
+      <div class="relative group/badge">
+        <p
+          class="text-white rounded-lg bg-gradient-to-r from-red-700 via-red-600
+            to-red-500 px-[0.5em] py-[0.25em] font-bold tracking-wide uppercase shadow-lg
+            text-[clamp(1rem,4vw,2rem)]"
+        >
+          {deal.discount_percent}% OFF
+        </p>
+      </div>
     </div>
-		
-		<!-- Bottom Section -->
-		<div class="space-y-3 sm:space-y-4">
-			<!-- Title and Price Section -->
-			<div class="flex items-end justify-between gap-4">
-				<!-- Title -->
-        <h2 class="text-2xl font-black text-white leading-tight line-clamp-2 sm:text-3xl md:text-4xl drop-shadow-2xl">
-          {deal.title}
+    
+    <!-- Bottom Section -->
+    <div class="space-y-[1.5%]">
+      <!-- Title and Price Section -->
+      <div class="flex items-end justify-between gap-[3%]">
+        <!-- Title -->
+        <h2 
+          class="font-black text-white leading-tight drop-shadow-2xl
+              text-[clamp(1.25rem,3.5vw,1.75rem)]
+              truncate sm:whitespace-normal sm:truncate-none sm:line-clamp-2 
+              max-w-full"
+        >{deal.title}
         </h2>
-				
-				<!-- Price -->
-        <div class="text-right">
+
+        
+        <!-- Price -->
+        <div class="text-right shrink-0">
           <h2
-            class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white
-            sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
+            class="rounded-lg bg-[#f76800] px-[0.4em] py-[0.2em] font-bold text-white
+              inline-flex items-baseline gap-1 whitespace-nowrap text-[clamp(1rem,2.5vw,1.5rem)]"
           >
             ₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            <span class="text-[10px] underline sm:text-xs">per pc.</span>
           </h2>
-          <p class="text-xs text-gray-300 line-through sm:text-sm">
+          <p class="text-gray-300 line-through text-[clamp(0.7rem,1.5vw,0.875rem)] mt-0.5">
             ₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
-			</div>
-		</div>
-	</div>
+      </div>
+    </div>
+  </div>
 </button>
 
 <!-- <div

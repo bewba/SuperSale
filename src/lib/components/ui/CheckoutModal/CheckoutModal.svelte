@@ -126,7 +126,7 @@
 				<div class="flex flex-1 flex-col space-y-6 p-4 sm:p-6 lg:p-8">
 					<!-- Title & details -->
 					<div class="space-y-3">
-						<h2 class="text-xl leading-tight font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+						<h2 class="text-xl leading-tight font-bold text-gray-900 sm:text-2xl lg:text-3xl break-all">
 							{selectedDeal.title}
 						</h2>
 
