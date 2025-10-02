@@ -1,57 +1,3 @@
-<!-- <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import { onMount, onDestroy } from 'svelte';
-
-	const dispatch = createEventDispatcher();
-
-	type Deal = {
-		id: string;
-		title: string;
-		image: string;
-		quantity: number;
-		original_price: number;
-		discount_price: number;
-		discount_percent: number;
-		reason: string;
-		expires_at: string;
-		contact_information: string;
-		reason_category: string;
-	};
-
-	export let deal: Deal;
-
-	let timeLeft: string = '';
-	let interval: any;
-
-	function updateCountdown() {
-		const now = Date.now();
-		const expiry = new Date(deal.expires_at).getTime();
-		const diff = expiry - now;
-
-		if (diff <= 0) {
-			timeLeft = 'EXPIRED';
-			clearInterval(interval);
-			return;
-		}
-
-		const seconds = Math.floor((diff / 1000) % 60);
-		const minutes = Math.floor((diff / 1000 / 60) % 60);
-		const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-		timeLeft = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-	}
-
-	onMount(() => {
-		updateCountdown();
-		interval = setInterval(updateCountdown, 1000);
-	});
-
-	onDestroy(() => {
-		clearInterval(interval);
-	});
-</script> -->
-
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -99,8 +45,70 @@
 	console.log(deal);
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<div
+<button
+  class="group relative w-full aspect-[3/2] cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
+  onclick={selectDeal}
+>
+  <!-- Background Image -->
+  <img
+    src={deal.image_list && deal.image_list.length > 0
+      ? deal.image_list[0]
+      : deal.image}
+    alt={deal.title}
+    class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+  />
+  
+  <!-- Gradient Overlay -->
+  <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/80"></div>
+  
+  <!-- Content Container -->
+  <div class="relative h-full flex flex-col justify-between p-[4%]">
+    <!-- Top Section -->
+    <div class="flex items-start justify-between gap-[2%]">
+      <!-- Discount Badge -->
+      <div class="relative group/badge">
+        <p
+          class="text-white rounded-lg bg-gradient-to-r from-red-700 via-red-600
+            to-red-500 px-[0.5em] py-[0.25em] font-bold tracking-wide uppercase shadow-lg
+            text-[clamp(1rem,4vw,2rem)]"
+        >
+          {deal.discount_percent}% OFF
+        </p>
+      </div>
+    </div>
+    
+    <!-- Bottom Section -->
+    <div class="space-y-[1.5%]">
+      <!-- Title and Price Section -->
+      <div class="flex items-end justify-between gap-[3%]">
+        <!-- Title -->
+        <h2 
+          class="font-black text-white leading-tight drop-shadow-2xl
+              text-[clamp(1.25rem,3.5vw,1.75rem)]
+              truncate sm:whitespace-normal sm:truncate-none sm:line-clamp-2 
+              max-w-full"
+        >{deal.title}
+        </h2>
+
+        
+        <!-- Price -->
+        <div class="text-right shrink-0">
+          <h2
+            class="rounded-lg bg-[#f76800] px-[0.4em] py-[0.2em] font-bold text-white
+              inline-flex items-baseline gap-1 whitespace-nowrap text-[clamp(1rem,2.5vw,1.5rem)]"
+          >
+            ₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </h2>
+          <p class="text-gray-300 line-through text-[clamp(0.7rem,1.5vw,0.875rem)] mt-0.5">
+            ₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</button>
+
+<!-- <div
 	role="button"
 	tabindex="0"
 	class="relative h-56 w-full flex-shrink-0 cursor-pointer overflow-hidden rounded-lg bg-cover bg-center sm:h-64 md:h-72 lg:h-80"
@@ -109,24 +117,24 @@
 			deal.image_list[0]
 		: deal.image})"
 	onclick={selectDeal}
->
+> -->
 	<!-- Gradient overlay -->
-	<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+	<!-- <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div> -->
 
 	<!-- Top Details -->
-	<div class="absolute top-0 right-0 left-0 flex items-center justify-between p-3 text-white">
+	<!-- <div class="absolute top-0 right-0 left-0 flex items-center justify-between p-3 text-white"> -->
 		<!-- Discount percentage -->
-		<p
+		<!-- <p
 			class="rounded-lg bg-gradient-to-r from-red-700 via-red-600
 		          to-red-500 px-2 py-1 text-2xl font-bold tracking-wide uppercase shadow-lg
 		         sm:px-3 sm:py-2 sm:text-3xl md:px-4 md:py-2.5
 		         md:text-4xl lg:px-5 lg:py-3 lg:text-5xl"
 		>
 			{deal.discount_percent}% OFF
-		</p>
+		</p> -->
 
 		<!-- Star Rating -->
-		{#if deal.avg_rating}
+		<!-- {#if deal.avg_rating}
 			<div
 				class="backdrop-blur-xxs flex items-center gap-1 rounded-lg bg-black/30 px-1.5 py-0.5 sm:gap-1.5
                   sm:px-2 sm:py-1 md:px-3 md:py-1.5"
@@ -141,50 +149,50 @@
 				</span>
 			</div>
 		{/if}
-	</div>
+	</div> -->
 
 	<!-- Bottom Details -->
-	<div class="absolute right-0 bottom-0 left-0 flex items-end justify-between p-4 text-white">
+	<!-- <div class="absolute right-0 bottom-0 left-0 flex items-end justify-between p-4 text-white"> -->
 		<!-- Left -->
-		<div class="space-y-1">
+		<!-- <div class="space-y-1"> -->
 			<!-- Expiry -->
-			<p
+			<!-- <p
 				class="w-fit rounded-lg bg-[#f76800] px-2 py-0.5 text-xs font-bold text-white sm:text-sm md:text-base"
 			>
 				Promo ends in: {timeLeft}
-			</p>
+			</p> -->
 
 			<!-- Name and description -->
-			<div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80">
-				<h2
+			<!-- <div class="w-64 space-y-0.5 sm:w-72 sm:space-y-1 md:w-80"> -->
+				<!-- <h2
 					class="truncate text-xl leading-tight font-semibold sm:text-2xl md:text-3xl lg:text-4xl"
 				>
 					{deal.title}
-				</h2>
+				</h2> -->
 
 				<!-- <p
 					class="line-clamp-1 text-xs text-gray-200 sm:line-clamp-2 sm:text-sm md:line-clamp-3 md:text-base"
 				>
 					{deal.reason}
 				</p> -->
-			</div>
-		</div>
+			<!-- </div> -->
+		<!-- </div> -->
 
 		<!-- Right -->
-		<div class="text-right">
-			<h2
+		<!-- <div class="text-right"> -->
+			<!-- <h2
 		 		class="rounded-lg bg-[#f76800] px-2 py-1 text-lg font-bold text-white
 				sm:text-xl md:text-2xl inline-flex items-baseline gap-1 whitespace-nowrap"
-		 	>
-				₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-		 		<span class="text-[10px] underline sm:text-xs">per pc.</span>
-		 	</h2>
-		 	<p class="text-xs text-gray-300 line-through sm:text-sm">
-				₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-		 	</p>
-		</div>
-	</div>
-</div>
+		 	> -->
+				<!-- ₱{deal.discount_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} -->
+		 		<!-- <span class="text-[10px] underline sm:text-xs">per pc.</span> -->
+		 	<!-- </h2> -->
+		 	<!-- <p class="text-xs text-gray-300 line-through sm:text-sm"> -->
+				<!-- ₱{deal.original_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} -->
+		 	<!-- </p> -->
+		<!-- </div> -->
+	<!-- </div> -->
+<!-- </div>  -->
 
 <!-- <button
 				class="w-full cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 focus:outline-none"
