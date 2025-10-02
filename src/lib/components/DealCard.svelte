@@ -46,8 +46,8 @@
 </script>
 
 <button
-	class="group relative h-72 w-full cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] sm:h-80 md:h-96"
-	onclick={selectDeal}
+  class="group relative w-full aspect-[3/2] cursor-pointer overflow-hidden rounded-2xl shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
+  onclick={selectDeal}
 >
 	<!-- Background Image -->
 	<img
