@@ -194,26 +194,28 @@
 											<p class="font-medium text-gray-900">
 												<strong>{sellerData.store_name}</strong>
 											</p>
-											<p class="text-sm text-gray-600">
+                      <p class="text-sm text-gray-600">
 												<strong>Store address:</strong>
 												{sellerData.address}
 											</p>
-											<p class="mt-1 text-sm text-gray-600">
+											<div class="flex mt-1 text-sm text-gray-600">
 												<strong>Available for:</strong>
-												{#if sellerData.pickup}
-													<span
-														class="mr-1 inline-block rounded-full bg-orange-600 px-2 py-1 text-xs font-medium text-white"
-													>
-														Pickup
-													</span>
-												{/if}
-												{#if sellerData.delivery}
-													<span
-														class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700"
-													>
-														Delivery
-													</span>
-												{/if}
+                        <div class="ml-2">
+                          {#if sellerData.pickup}
+                            <span
+                              class="mr-1 text-xs font-medium"
+                            >
+                              Pickup
+                            </span>
+                          {/if}
+                          {#if sellerData.delivery}
+                            <span
+                              class="text-xs font-medium"
+                            >
+                              Delivery
+                            </span>
+                          {/if}
+                        </div>
 												{#if !sellerData.delivery && !sellerData.pickup}
 													<span
 														class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium"
@@ -221,7 +223,7 @@
 														Pickup/Delivery not available.
 													</span>
 												{/if}	
-											</p>
+                      </div>
 										</div>
 									</div>
 								</div>
