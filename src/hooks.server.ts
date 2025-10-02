@@ -1,28 +1,28 @@
 // src/hooks.server.ts
-import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import { SvelteKitAuth } from '@auth/sveltekit';
+import Google from '@auth/sveltekit/providers/google';
+import { createClient } from '@supabase/supabase-js';
+
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { getPb } from '$lib/pocketbase/pb.client';
+
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from '$env/static/private';
+
+import type { Handle } from '@sveltejs/kit';
+
+// Auth.js setup
+const authHandle = SvelteKitAuth({
+	providers: [
+		Google({
+			clientId: GOOGLE_CLIENT_ID,
+			clientSecret: GOOGLE_CLIENT_SECRET
+		})
+	]
+});
 
 export const handle: Handle = async ({ event, resolve }) => {
-	//console.log('hooks running', PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY ? 'KEY OK' : 'NO KEY');
+	// Attach Supabase client to locals (no auth helpers, just DB)
+	event.locals.supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-	event.locals.supabase = createSupabaseServerClient({
-		supabaseUrl: PUBLIC_SUPABASE_URL,
-		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-		event
-	});
-
-	const pb = getPb();
-
-	// attach pb to locals
-	event.locals.pb = pb ?? null;
-
-	const {
-		data: { user }
-	} = await event.locals.supabase.auth.getUser();
-
-	event.locals.user = user ?? null;
-
-	return resolve(event);
+	// Let Auth.js do its thing
+	return authHandle.handle({ event, resolve });
 };
