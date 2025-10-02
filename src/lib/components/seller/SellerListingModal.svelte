@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import type { Deal } from '$lib/types/types';
 	import { toastError } from '$lib/stores/toast';
-	import { X, ImageUp } from '@lucide/svelte';
+	import { X, ImageUp, ChevronDown } from '@lucide/svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -29,6 +29,7 @@
 	let expiresInHours: number = 2;
 	let category = '';
 	let contactInfo = '';
+  let unit:string = '';
 	let discountPercent = 50;
 
 	function getExpiryTimestampz(hours: number): string {
@@ -135,7 +136,8 @@
 			expires_at,
 			category,
 			contactInfo,
-			imageFiles,
+      unit,
+      imageFiles,
 			existingImages,
 			removedImages // backend will remove these
 		};
@@ -161,6 +163,7 @@
 		existingImages = deal.image_list ? [...deal.image_list] : [];
 		imageFiles = [];
 		removedImages = [];
+    unit = deal.unit;
 
 		if (deal.expires_at) {
 			const nowPH = new Date(
@@ -174,7 +177,8 @@
 		productName = '';
 		description = '';
 		originalPrice = undefined;
-		quantity = '1';
+    unit = '';
+    quantity = '1';
 		category = '';
 		contactInfo = '';
 		discountPercent = 50;
@@ -273,7 +277,7 @@
 							required
 							class="w-full rounded-md border p-2 text-sm"
 						/>
-					</div>
+					</div> 
 
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 						<div>
@@ -304,7 +308,32 @@
 								Discounted Price: <span class="font-semibold">₱{discountPrice}</span>
 							</div>
 						</div>
-					</div>
+					
+            <div>
+              <label for="unit" class="block text-sm font-semibold">Unit (optional)</label>
+              <div class="relative">
+                <select
+                  id="unit"
+                  bind:value={unit}
+                  class="w-full rounded-md border p-2 pr-7 text-sm appearance-none"
+                >
+                  <option value="">Select unit</option>
+                  <option value="per/pc">per/pc</option>
+                  <option value="per/kg">per/kg</option>
+                  <option value="per/g">per/g</option>
+                  <option value="per/ml">per/ml</option>
+                  <option value="per/L">per/L</option>
+                </select>
+            
+                <!-- Dropdown arrow -->
+                <span class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <ChevronDown />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          </div>
 				</div>
 
 				<!-- Expiry -->

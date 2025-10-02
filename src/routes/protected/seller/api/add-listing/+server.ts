@@ -11,7 +11,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			discountPrice,
 			discountPercent,
 			description,
-			quantity,
+      unit,
+      quantity,
 			category,
 			contactInfo,
 			image_list,
@@ -42,7 +43,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				reason_category: category,
 				contact_information: contactInfo,
 				owner_id: user,
-				expires_at
+				expires_at,
+        unit,
 			}
 		]);
 
