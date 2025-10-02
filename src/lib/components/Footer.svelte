@@ -10,7 +10,7 @@
     <div class="text-center md:text-right space-y-1">
       <p class="font-semibold">Get in touch with us:</p>
       <p class="text-sm">
-        supersale.phbusiness@gmail.com<br>Tim (+63) 995-134-335 | Tiff (+63) 915-593-8399
+        supersale.phbusiness@gmail.com<br>Tim 09088886688 | Tiff (+63) 915-593-8399
       </p>
       <!-- <p class="text-xs">Hero-photo property of @salcedomarket</p> -->
 		<!-- TODO: ADD SOCIAL MEDIA ICONS/LINKS -->
