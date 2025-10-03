@@ -5,20 +5,29 @@
 	import { track } from '$lib/analytics/analytics';
 	import { goto } from '$app/navigation';
 
-	export let selectedDeal: Deal;
+	// ✅ Props in runes mode
+	const { selectedDeal } = $props<{ selectedDeal: Deal }>();
 
 	let sellerData: any = null;
 	let loadingSeller = true;
 	let sellerError: string | null = null;
 
-	if (!selectedDeal) {
-		closeModal();
-	}
-
 	const dispatch = createEventDispatcher();
 
+	$effect(() => {
+		if (!selectedDeal) {
+			closeModal();
+		}
+	});
+
+	const timeLeft: 'UNKNOWN' | 'EXPIRED' | 'ACTIVE' = $derived.by(() => {
+		if (!selectedDeal) return 'UNKNOWN';
+		const now = new Date();
+		const expiry = new Date(selectedDeal.expires_at);
+		return now > expiry ? 'EXPIRED' : 'ACTIVE';
+	});
+
 	function closeModal() {
-		console.log(':hsoidsa');
 		dispatch('close');
 	}
 
@@ -36,18 +45,11 @@
 			loadingSeller = true;
 			sellerError = null;
 
-			// Use query parameters instead of route parameters
 			const response = await fetch(`/api/fetchSeller?seller_id=${selectedDeal.owner_id}`);
-
-			if (!response.ok) {
-				throw new Error(`Failed to fetch seller: ${response.statusText}`);
-			}
+			if (!response.ok) throw new Error(`Failed to fetch seller: ${response.statusText}`);
 
 			const result = await response.json();
-
-			if (result.error) {
-				throw new Error(result.error);
-			}
+			if (result.error) throw new Error(result.error);
 
 			sellerData = result.data;
 		} catch (error) {
@@ -59,19 +61,22 @@
 	}
 
 	function openViber() {
+		if (!sellerData) return;
 		track('Open Viber', {
 			seller_id: sellerData.id,
 			viber_link: sellerData.viber_link
 		});
-
 		setTimeout(() => {
 			window.location.href = sellerData.viber_link;
 		}, 200);
 	}
 
-	$: if (selectedDeal?.owner_id) {
-		fetchSellerData();
-	}
+	// ✅ effect instead of `$: if (...)`
+	$effect(() => {
+		if (selectedDeal?.owner_id) {
+			fetchSellerData();
+		}
+	});
 </script>
 
 <div
@@ -116,8 +121,23 @@
 		<div class="flex max-h-[95vh] flex-col overflow-hidden lg:flex-row">
 			<!-- Image section -->
 			<div class="bg-gray-50 lg:max-h-[95vh] lg:w-1/2">
-				<div class="h-64 sm:h-80 md:h-96 lg:h-full">
+				<div class="relative h-64 sm:h-80 md:h-96 lg:h-full">
 					<ImageRoll deal={selectedDeal} />
+
+					{#if timeLeft === 'EXPIRED'}
+						<!-- Overlay sticker -->
+						<div class="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+							<div class="-rotate-6 transform">
+								<p
+									class="rounded-lg border-2 border-red-500 bg-red-600/80
+									px-3 py-1 text-[clamp(2rem,4vw,2rem)]
+									font-bold tracking-wide text-white uppercase shadow-lg"
+								>
+									Deal Expired
+								</p>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 
