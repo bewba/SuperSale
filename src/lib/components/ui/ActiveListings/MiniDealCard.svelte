@@ -2,20 +2,31 @@
 	import { createEventDispatcher } from 'svelte';
 	import type { Deal } from '$lib/types/types';
 
-	let { deal } = $props();
+	let { deal }: { deal: Deal } = $props();
 
 	const dispatch = createEventDispatcher();
 
 	function selectDeal() {
 		dispatch('select', deal);
 	}
+
+	const timeLeft = $derived(
+		(() => {
+			const now = new Date();
+			const expiry = new Date(deal.expires_at);
+
+			console.log(now > expiry ? 'EXPIRED' : 'ACTIVE');
+
+			return now > expiry ? 'EXPIRED' : 'ACTIVE';
+		})()
+	);
 </script>
 
 <!-- Clickable square card -->
 <div
 	role="button"
 	tabindex="0"
-	class="mb-3 inline-block w-full cursor-pointer break-inside-avoid"
+	class="relative mb-3 inline-block w-full cursor-pointer break-inside-avoid"
 	onclick={selectDeal}
 	onkeydown={(e) => e.key === 'Enter' && selectDeal()}
 >
@@ -56,4 +67,21 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Gradient Overlay -->
+
+	{#if timeLeft === 'EXPIRED'}
+		<!-- Semi-transparent overlay (lets the deal still be visible) -->
+		<div class="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+			<div class="-rotate-6 transform">
+				<p
+					class="rounded-lg border-2 border-red-500 bg-red-600/80
+				       px-3 py-1 text-[clamp(1rem,4vw,2rem)]
+				       font-bold tracking-wide text-white uppercase shadow-lg"
+				>
+					Deal Expired
+				</p>
+			</div>
+		</div>
+	{/if}
 </div>
