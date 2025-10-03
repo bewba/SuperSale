@@ -15,8 +15,6 @@
 			const now = new Date();
 			const expiry = new Date(deal.expires_at);
 
-			console.log(now > expiry ? 'EXPIRED' : 'ACTIVE');
-
 			return now > expiry ? 'EXPIRED' : 'ACTIVE';
 		})()
 	);

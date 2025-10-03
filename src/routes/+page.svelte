@@ -20,10 +20,18 @@
 	let openCheckoutModal = false;
 	let selectedDeal: any | null = null;
 	let deals: Deal[] = [];
-	let offset = 0;
+	let activeDeals: Deal[] = [];
+	let offsetProducts = 0;
+	let offsetActive = 0;
 	const limit = 10;
 	let hasMore = true;
 	let loading = false;
+
+	let hasMoreProducts = true;
+	let hasMoreActive = true;
+
+	let loadingProducts = false;
+	let loadingActive = false;
 
 	// Notification state
 	// let hasUnseenMessages = false;
@@ -138,26 +146,41 @@
 		return await res.json();
 	}
 
-	async function loadMore() {
-		if (loading || !hasMore) return;
-		loading = true;
+	async function loadActiveProducts(
+		offset = 0,
+		limit = 10
+	): Promise<{ data: Deal[]; hasMore: boolean }> {
+		const res = await fetch(`/api/fetchActiveDeals?offset=${offset}&limit=${limit}`);
+		return await res.json();
+	}
 
-		const result = await loadProducts(offset, limit);
-		deals = [...deals, ...result.data]; // append new items
-		hasMore = result.hasMore;
-		offset += limit;
+	async function loadMoreActiveDeals() {
+		if (loadingActive || !hasMoreActive) return;
+		loadingActive = true;
 
-		loading = false;
+		const result = await loadActiveProducts(offsetActive, limit);
+		activeDeals = [...activeDeals, ...result.data];
+		hasMoreActive = result.hasMore;
+		offsetActive += limit;
+
+		loadingActive = false;
+	}
+
+	async function loadMoreProducts() {
+		if (loadingProducts || !hasMoreProducts) return;
+		loadingProducts = true;
+
+		const result = await loadProducts(offsetProducts, limit);
+		deals = [...deals, ...result.data];
+		hasMoreProducts = result.hasMore;
+		offsetProducts += limit;
+
+		loadingProducts = false;
 	}
 
 	onMount(async () => {
-		await loadMore(); // load first batch
-
-		// // Check for unseen messages on page load
-		// if (user?.id) {
-		// 	await checkUnseenMessages();
-		// 	await setupRealtimeSubscription();
-		// }
+		// load first batches
+		await Promise.all([loadMoreProducts(), loadMoreActiveDeals()]);
 	});
 
 	// Cleanup subscription on destroy
@@ -181,11 +204,11 @@
 		<!-- Hot Deals -->
 		<div class="px-4 sm:px-0">
 			<HotDeals
-				{deals}
-				{hasMore}
-				{loading}
+				deals={activeDeals}
+				hasMore={hasMoreActive}
+				loading={loadingActive}
 				on:select={(e) => openCheckout(e.detail)}
-				on:loadMore={() => loadMore()}
+				on:loadMore={() => loadMoreActiveDeals()}
 			/>
 		</div>
 
@@ -198,10 +221,10 @@
 		<div class="mt-6 px-4 sm:mt-8 sm:px-0 md:mt-10">
 			<ActiveListings
 				{deals}
-				{hasMore}
-				{loading}
+				hasMore={hasMoreProducts}
+				loading={loadingProducts}
 				on:select={(e) => openCheckout(e.detail)}
-				on:loadMore={() => loadMore()}
+				on:loadMore={() => loadMoreProducts()}
 			/>
 		</div>
 	</div>
@@ -209,7 +232,7 @@
 	<!-- Checkout Modal -->
 	{#if openCheckoutModal}
 		<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm">
-			<CheckoutModal {selectedDeal} on:close={closeCheckout} on:chat={(e) => handleChat(e)} />
+			<CheckoutModal {selectedDeal} on:close={closeCheckout} />
 		</div>
 	{/if}
 
