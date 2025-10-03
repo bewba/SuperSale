@@ -4,13 +4,15 @@
 	import type { Deal } from '$lib/types/types';
 	import { track } from '$lib/analytics/analytics';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	// ✅ Props in runes mode
 	const { selectedDeal } = $props<{ selectedDeal: Deal }>();
 
-	let sellerData: any = null;
-	let loadingSeller = true;
-	let sellerError: string | null = null;
+	let sellerData: any = $state(null);
+	let loadingSeller = $state(true);
+	let sellerError: string | null = $state(null);
+	let currentSellerId = $state<string | null>(null);
 
 	const dispatch = createEventDispatcher();
 
@@ -46,10 +48,13 @@
 			sellerError = null;
 
 			const response = await fetch(`/api/fetchSeller?seller_id=${selectedDeal.owner_id}`);
+
 			if (!response.ok) throw new Error(`Failed to fetch seller: ${response.statusText}`);
 
 			const result = await response.json();
 			if (result.error) throw new Error(result.error);
+
+			console.log(result.data);
 
 			sellerData = result.data;
 		} catch (error) {
@@ -71,9 +76,11 @@
 		}, 200);
 	}
 
-	// ✅ effect instead of `$: if (...)`
 	$effect(() => {
-		if (selectedDeal?.owner_id) {
+		if (selectedDeal?.owner_id && selectedDeal.owner_id !== currentSellerId) {
+			currentSellerId = selectedDeal.owner_id;
+			sellerData = null;
+			sellerError = null;
 			fetchSellerData();
 		}
 	});
