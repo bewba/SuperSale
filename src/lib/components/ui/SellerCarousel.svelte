@@ -68,51 +68,48 @@
   });
 </script>
 
-
 <div class="m-2" id="brands">
-  <h1 class="mb-3 text-4xl font-bold">Featured brands:</h1>
-
-  <!-- Slider container -->
-  <div class="relative">
-    <div
-      id="brands-slider"
-      class="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide scroll-smooth gap-4"
-    >
-      {#each sellers as seller, i}
-        <div
-          class="shrink-0 flex justify-center snap-center md:snap-start lg:snap-start transition-shadow duration-300"
-          class:selected={i === currentIndex}
-        >
-          <SellerCard {seller} />
-        </div>
-      {/each}
-    </div>
-
+	<h1 class="mb-3 text-4xl font-bold">Featured brands:</h1>
+	<!-- Slider container -->
+	<div class="relative group">
+		<div
+			id="brands-slider"
+			class="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide scroll-smooth gap-4"
+		>
+			{#each sellers as seller, i}
+				<div
+					class="shrink-0 flex justify-center snap-center md:snap-start lg:snap-start transition-shadow duration-300"
+					class:selected={i === currentIndex}
+				>
+					<SellerCard {seller} />
+				</div>
+			{/each}
+		</div>
+		
     <!-- Navigation buttons -->
-    <button
-      onclick={prev}
-      class="cursor-pointer absolute top-1/2 left-0 -translate-y-1/2 bg-black/50 text-white py-1 rounded-r"
-    >
-      <ChevronLeft />
-    </button>
-    <button
-      onclick={next}
-      class="cursor-pointer absolute top-1/2 right-0 -translate-y-1/2 bg-black/50 text-white py-1 rounded-l"
-    >
-      <ChevronRight />
-    </button>
-  </div>
+		<button
+			onclick={prev}
+			class="cursor-pointer absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+			aria-label="Previous brands"
+		>
+			<ChevronLeft class="w-6 h-6" />
+		</button>
+		<button
+			onclick={next}
+			class="cursor-pointer absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg transition-all hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+			aria-label="Next brands"
+		>
+			<ChevronRight class="w-6 h-6" />
+		</button>
+	</div>
 </div>
 
 <style>
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .selected {
-    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 1));
-  }
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none;
+	}
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
 </style>

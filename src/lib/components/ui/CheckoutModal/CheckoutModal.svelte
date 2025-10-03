@@ -4,21 +4,32 @@
 	import type { Deal } from '$lib/types/types';
 	import { track } from '$lib/analytics/analytics';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
-	export let selectedDeal: Deal;
+	// ✅ Props in runes mode
+	const { selectedDeal } = $props<{ selectedDeal: Deal }>();
 
-	let sellerData: any = null;
-	let loadingSeller = true;
-	let sellerError: string | null = null;
-
-	if (!selectedDeal) {
-		closeModal();
-	}
+	let sellerData: any = $state(null);
+	let loadingSeller = $state(true);
+	let sellerError: string | null = $state(null);
+	let currentSellerId = $state<string | null>(null);
 
 	const dispatch = createEventDispatcher();
 
+	$effect(() => {
+		if (!selectedDeal) {
+			closeModal();
+		}
+	});
+
+	const timeLeft: 'UNKNOWN' | 'EXPIRED' | 'ACTIVE' = $derived.by(() => {
+		if (!selectedDeal) return 'UNKNOWN';
+		const now = new Date();
+		const expiry = new Date(selectedDeal.expires_at);
+		return now > expiry ? 'EXPIRED' : 'ACTIVE';
+	});
+
 	function closeModal() {
-		console.log(':hsoidsa');
 		dispatch('close');
 	}
 
@@ -36,18 +47,14 @@
 			loadingSeller = true;
 			sellerError = null;
 
-			// Use query parameters instead of route parameters
 			const response = await fetch(`/api/fetchSeller?seller_id=${selectedDeal.owner_id}`);
 
-			if (!response.ok) {
-				throw new Error(`Failed to fetch seller: ${response.statusText}`);
-			}
+			if (!response.ok) throw new Error(`Failed to fetch seller: ${response.statusText}`);
 
 			const result = await response.json();
+			if (result.error) throw new Error(result.error);
 
-			if (result.error) {
-				throw new Error(result.error);
-			}
+			console.log(result.data);
 
 			sellerData = result.data;
 		} catch (error) {
@@ -59,19 +66,24 @@
 	}
 
 	function openViber() {
+		if (!sellerData) return;
 		track('Open Viber', {
 			seller_id: sellerData.id,
 			viber_link: sellerData.viber_link
 		});
-
 		setTimeout(() => {
 			window.location.href = sellerData.viber_link;
 		}, 200);
 	}
 
-	$: if (selectedDeal?.owner_id) {
-		fetchSellerData();
-	}
+	$effect(() => {
+		if (selectedDeal?.owner_id && selectedDeal.owner_id !== currentSellerId) {
+			currentSellerId = selectedDeal.owner_id;
+			sellerData = null;
+			sellerError = null;
+			fetchSellerData();
+		}
+	});
 </script>
 
 <div
@@ -116,8 +128,23 @@
 		<div class="flex max-h-[95vh] flex-col overflow-hidden lg:flex-row">
 			<!-- Image section -->
 			<div class="bg-gray-50 lg:max-h-[95vh] lg:w-1/2">
-				<div class="h-64 sm:h-80 md:h-96 lg:h-full">
+				<div class="relative h-64 sm:h-80 md:h-96 lg:h-full">
 					<ImageRoll deal={selectedDeal} />
+
+					{#if timeLeft === 'EXPIRED'}
+						<!-- Overlay sticker -->
+						<div class="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+							<div class="-rotate-6 transform">
+								<p
+									class="rounded-lg border-2 border-red-500 bg-red-600/80
+									px-3 py-1 text-[clamp(2rem,4vw,2rem)]
+									font-bold tracking-wide text-white uppercase shadow-lg"
+								>
+									Deal Expired
+								</p>
+							</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -126,22 +153,26 @@
 				<div class="flex flex-1 flex-col space-y-6 p-4 sm:p-6 lg:p-8">
 					<!-- Title & details -->
 					<div class="space-y-3">
-						<h2 class="text-xl leading-tight font-bold text-gray-900 sm:text-2xl lg:text-3xl">
+						<h2
+							class="text-xl leading-tight font-bold break-all text-gray-900 sm:text-2xl lg:text-3xl"
+						>
 							{selectedDeal.title}
 						</h2>
 
 						<!-- Price section with better visual hierarchy -->
 						<div
-							class="flex flex-wrap items-baseline gap-3 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-red-50 p-4"
+							class="flex flex-col flex-wrap items-baseline rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-red-50 p-4"
 						>
-							<span class="text-2xl font-bold text-orange-600 sm:text-3xl">
-								₱{selectedDeal.discount_price.toFixed(2)}
-							</span>
+							<div>
+								<span class="text-3xl font-bold text-orange-600 sm:text-3xl">
+									₱{selectedDeal.discount_price.toFixed(2)}
+								</span>
+								<span class="text-sm text-gray-600">
+									{selectedDeal.unit}
+								</span>
+							</div>
 							<span class="text-base text-gray-500 line-through sm:text-lg">
 								₱{selectedDeal.original_price.toFixed(2)}
-							</span>
-							<span class="rounded-md border bg-white px-2 py-1 text-sm text-gray-600">
-								per pc.
 							</span>
 						</div>
 					</div>
@@ -182,10 +213,16 @@
 								<div class="seller-info space-y-3">
 									<div class="flex items-center gap-3">
 										<button
-											class="cursor-pointer flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
-											on:click={()=>{goto(`/brand/${sellerData.id}`)}}	
+											class="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-blue-100"
+											on:click={() => {
+												goto(`/brand/${sellerData.id}`);
+											}}
 										>
-											<img src={sellerData.logo} alt="seller-logo" class="rounded-full h-full w-full object-cover" />	
+											<img
+												src={sellerData.logo}
+												alt="seller-logo"
+												class="h-full w-full rounded-full object-cover"
+											/>
 										</button>
 										<div>
 											<p class="font-medium text-gray-900">
@@ -195,30 +232,24 @@
 												<strong>Store address:</strong>
 												{sellerData.address}
 											</p>
-											<p class="mt-1 text-sm text-gray-600">
+											<div class="mt-1 flex text-sm text-gray-600">
 												<strong>Available for:</strong>
-												{#if sellerData.pickup}
-													<span
-														class="mr-1 inline-block rounded-full bg-orange-600 px-2 py-1 text-xs font-medium text-white"
-													>
-														Pickup
-													</span>
-												{/if}
-												{#if sellerData.delivery}
-													<span
-														class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700"
-													>
-														Delivery
-													</span>
-												{/if}
+												<div class="ml-2">
+													{#if sellerData.pickup}
+														<span class="mr-1 text-xs font-medium"> Pickup </span>
+													{/if}
+													{#if sellerData.delivery}
+														<span class="text-xs font-medium"> Delivery </span>
+													{/if}
+												</div>
 												{#if !sellerData.delivery && !sellerData.pickup}
 													<span
 														class="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs font-medium"
 													>
 														Pickup/Delivery not available.
 													</span>
-												{/if}	
-											</p>
+												{/if}
+											</div>
 										</div>
 									</div>
 								</div>
@@ -273,15 +304,16 @@
 					<!-- Viber Button -->
 					<button
 						on:click={openViber}
-						class="mt-2 w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#665CAC] to-[#7B68EE]
-		px-6 py-3
-		font-semibold text-white shadow-md transition-all
-		duration-200 ease-in-out hover:-translate-y-0.5 hover:from-[#5A4F9A]
-		hover:to-[#6A5ACD] hover:shadow-lg
-		focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none
-		active:scale-95 active:transform"
+						class="relative mt-2 w-full transform cursor-pointer rounded-xl bg-gradient-to-r from-[#665CAC] to-[#7B68EE] px-6
+            py-3 font-semibold
+            text-white shadow-md transition-all duration-200
+            ease-in-out before:absolute before:inset-[-3px] before:animate-ping
+            before:rounded-xl before:bg-purple-400
+            before:opacity-75 before:[animation-duration:3s] hover:-translate-y-0.5 hover:from-[#5A4F9A]
+            hover:to-[#6A5ACD] hover:shadow-lg
+            focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none active:scale-95 active:transform"
 					>
-						<span class="flex items-center justify-center gap-2">
+						<span class="relative z-10 flex items-center justify-center gap-2">
 							<img class="h-6" src="/viber.webp" alt="viber-logo" />
 							Chat seller on Viber
 						</span>

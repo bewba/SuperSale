@@ -15,6 +15,7 @@ export type Deal = {
 	avg_rating: number;
 	image_list?: string[] | null;
 	expires_at_time?: string;
+  unit: string | null;
 };
 
 export type ProductResponse = {
