@@ -134,7 +134,7 @@
 	// }
 
 	async function loadProducts(offset = 0, limit = 10): Promise<{ data: Deal[]; hasMore: boolean }> {
-		const res = await fetch(`/api/fetchProducts?offset=${offset}&limit=${limit}`);
+		const res = await fetch(`/api/fetchActiveDeals?offset=${offset}&limit=${limit}`);
 		return await res.json();
 	}
 
