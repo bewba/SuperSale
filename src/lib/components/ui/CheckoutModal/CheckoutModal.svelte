@@ -130,7 +130,7 @@
 							<div class="-rotate-6 transform">
 								<p
 									class="rounded-lg border-2 border-red-500 bg-red-600/80
-									px-3 py-1 text-[clamp(1rem,4vw,2rem)]
+									px-3 py-1 text-[clamp(2rem,4vw,2rem)]
 									font-bold tracking-wide text-white uppercase shadow-lg"
 								>
 									Deal Expired
