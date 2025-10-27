@@ -203,8 +203,8 @@
 			if (deal.imageFiles?.length > 0) {
 				for (const file of deal.imageFiles) {
 					const compressedFile = await imageCompression(file, {
-						maxSizeMB: 0.15, // target max size in MB
-						maxWidthOrHeight: 1024, // resize large images
+						maxSizeMB: 0.15,
+						maxWidthOrHeight: 1024,
 						useWebWorker: true
 					});
 
