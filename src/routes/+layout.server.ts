@@ -4,8 +4,14 @@ import { injectAnalytics } from '@vercel/analytics/sveltekit';
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 	let { supabase, user } = locals;
 
-	if (!user) {
+	const session = await locals.auth();
+
+	console.log('Session: ', session);
+
+	if (!session) {
 		user = { id: cookies.get('fingerprint') };
+	} else {
+		user = session;
 	}
 
 	return {
