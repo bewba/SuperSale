@@ -13,6 +13,7 @@ declare global {
 			>;
 			user: User | null;
 			pb: PocketBase;
+			userRole: String | null;
 		}
 	}
 }

@@ -20,17 +20,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	console.log(user.id);
 
-	// check roles table
-	const { data: rolesData, error: rolesError } = await locals.supabase
-		.from('roles')
-		.select('*')
-		.eq('userId', user.id)
-		.eq('role', 'admin')
-		.single();
+	console.log(locals.userRole);
+	console.log(locals.userRole === 'admin');
 
-	console.log(rolesData, rolesError);
-
-	const isAdmin = !!rolesData;
+	const isAdmin = locals.userRole === 'admin';
 
 	if (!isAdmin) {
 		console.log(`❌ user is not admin: ${user.email}`);
@@ -41,10 +34,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	return {
 		user,
-		isAdmin,
-		supabaseError:
-			authError || rolesError
-				? { message: (authError || rolesError)?.message, status: (authError || rolesError)?.status }
-				: null
+		isAdmin
 	};
 };

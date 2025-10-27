@@ -21,8 +21,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const {
 		data: { user }
 	} = await event.locals.supabase.auth.getUser();
-
 	event.locals.user = user ?? null;
+
+	if (event.locals.user) {
+		const { data, error } = await event.locals.supabase
+			.from('roles')
+			.select('role')
+			.eq('userId', event.locals.user.id)
+			.single();
+		event.locals.userRole = data?.role ?? null;
+	}
 
 	return resolve(event);
 };
