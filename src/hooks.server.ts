@@ -5,7 +5,6 @@ import { SupabaseAdapter } from '@auth/supabase-adapter';
 import { createClient } from '@supabase/supabase-js';
 
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { getPb } from '$lib/pocketbase/pb.client';
 
 import {
 	GOOGLE_CLIENT_ID,
@@ -46,25 +45,23 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	});
 
-	const pb = getPb();
-
-	// attach pb to locals
-	event.locals.pb = pb ?? null;
-
 	const {
 		data: { user }
 	} = await event.locals.supabase.auth.getUser();
 	event.locals.user = user ?? null;
 
 	if (event.locals.user) {
+		console.log('skibidi');
 		const { data, error } = await event.locals.supabase
 			.from('roles')
 			.select('role')
 			.eq('userId', event.locals.user.id)
 			.single();
 		event.locals.userRole = data?.role ? String(data.role) : null;
+		console.log('role: ', event.locals.userRole);
+	} else {
+		event.locals.userRole = null;
 	}
 
 	return authHandle.handle({ event, resolve });
 };
-

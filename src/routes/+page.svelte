@@ -194,7 +194,7 @@
 
 <div class="min-h-[100vh]">
 	<!-- Header -->
-	<Header userStatus={user.role} />
+	<Header userStatus={user?.role} />
 
 	<!-- Hero -->
 	<!-- <Hero /> -->

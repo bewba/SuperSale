@@ -25,7 +25,7 @@
 	}
 
 	@media (max-width: 768px) {
-		.main-content {z
+		.main-content {
 			margin-left: 0;
 			padding: 1rem;
 		}
