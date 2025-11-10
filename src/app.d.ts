@@ -17,6 +17,8 @@ declare global {
 			pb: PocketBase;
 			userRole: string | null;
 			auth: () => Promise<any>;
+			session: Session | null;
+			userId: string | null;
 		}
 	}
 }

@@ -16,7 +16,9 @@
 
 	export let data;
 	const user = data?.user;
+	const userRole = data?.userRole;
 
+	console.log(userRole);
 	let openCheckoutModal = false;
 	let selectedDeal: any | null = null;
 	let deals: Deal[] = [];
@@ -190,11 +192,13 @@
 	// 		console.log('Unsubscribed from chat_rooms collection');
 	// 	}
 	// });
+
+	console.log('user: ', user);
 </script>
 
 <div class="min-h-[100vh]">
 	<!-- Header -->
-	<Header userStatus={user?.role} />
+	<Header userStatus={userRole} />
 
 	<!-- Hero -->
 	<!-- <Hero /> -->

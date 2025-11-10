@@ -8,29 +8,29 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		console.log(storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink);
 		const viber_link = viberLink;
-		const userId = locals.user.id;
+		const userId = locals.user?.id;
+		console.log('user is: ', locals.userId);
 		const sb = locals.supabase;
 
 		if (!storeName || !address) {
 			return json({ error: 'Store name and address are required' }, { status: 400 });
 		}
 
-		// 🔍 Check if user already exists in roles
-		const { data: existingRole, error: selectError } = await sb
-			.from('roles')
-			.select('id')
-			.eq('userId', userId);
+		let existingRole = locals.userRole == 'seller';
 
-		console.log(existingRole, selectError);
+		console.log(existingRole);
 
-		if (!existingRole || existingRole?.length > 0) {
+		if (existingRole) {
 			console.log(existingRole);
+
+			// TODO: Add server logs, handle toast
+
 			return json({ error: 'User already has a role registered' }, { status: 400 });
 		} else {
 			const { data, error } = await sb.from('roles').insert([
 				{
 					role: 'seller',
-					userId: userId,
+					userId: locals.userId,
 					store_name: storeName,
 					address,
 					pickup,
@@ -40,6 +40,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 					viber_link
 				}
 			]);
+
+			// TODO: Add server logs, handle toast
 
 			if (error) {
 				console.error('Insert error:', error);

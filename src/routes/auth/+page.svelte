@@ -77,7 +77,7 @@
 			<div class="space-y-3">
 				<button
 					type="button"
-					on:click={signIn('google', { callbackUrl: '/dashboard' })}
+					on:click={signIn('google', { callbackUrl: '/' })}
 					class="flex w-full transform cursor-pointer items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-700 transition-all duration-200 hover:scale-[1.02] hover:border-gray-400 hover:bg-gray-50 hover:shadow-md"
 				>
 					<svg class="h-5 w-5" viewBox="0 0 24 24">

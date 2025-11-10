@@ -15,13 +15,11 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		fullName: user.user_metadata?.full_name || '(no name)'
 	});
 
-	console.log(user.id);
-
 	// check roles table
 	const { data: rolesData, error: rolesError } = await locals.supabase
 		.from('roles')
 		.select('*')
-		.eq('userId', user.id)
+		.eq('userId', locals.userId)
 		.eq('role', 'seller')
 		.maybeSingle(); // 👈 safer
 
