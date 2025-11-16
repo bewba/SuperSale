@@ -6,9 +6,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 	// User is already set in hooks.server.ts from Supabase auth
 	// No need to check Auth.js session since we're using Supabase for now
-	console.log('test');
-	console.log('locals user: NIGGAAA', locals.user, userRole);
-
 	return {
 		user,
 		userRole

@@ -42,20 +42,11 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 	if (session) {
 		event.locals.user = session.user;
 	}
-
 	// Setup Supabase client
 	event.locals.supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 	// Get user role if authenticated
 	if (session?.user) {
-		const { data: roleData } = await event.locals.supabase
-			.from('roles')
-			.select('role')
-			.eq('userId', session.user.id)
-			.single();
-
-		event.locals.userRole = roleData?.role ?? null;
-
 		const { data: userData, error } = await event.locals.supabase
 			.from('users')
 			.select('*')
@@ -64,8 +55,18 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 
 		event.locals.userId = userData?.id ?? null;
 
-		console.log('userData: ', userData);
-		console.log(error);
+		const { data: roleData, error: roleError } = await event.locals.supabase
+			.from('roles')
+			.select('role')
+			.eq('userId', event.locals.userId)
+			.single();
+
+		console.log('userRole: ', roleData);
+		console.log('roleError: ', roleError);
+
+		event.locals.userRole = roleData?.role ?? null;
+
+		console.log('event.locals.userRole: ', event.locals.userRole);
 	} else {
 		event.locals.userRole = 'anon';
 	}

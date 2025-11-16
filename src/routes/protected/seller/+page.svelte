@@ -250,6 +250,10 @@
 		}
 	}
 
+	function changeView(view: string) {
+		currentView = view;
+	}
+
 	function editListing(deal: Deal) {
 		modalMode = 'edit';
 		selectedDeal = deal;
@@ -491,7 +495,7 @@
 			/>
 		{:else if currentView === 'edit-profile'}
 			<div class="flex h-full w-full items-center justify-center">
-				<EditSellerInfo {existingData} />
+				<EditSellerInfo {existingData} on:save={() => changeView('listings')} />
 			</div>
 		{/if}
 	</main>

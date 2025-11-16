@@ -11,15 +11,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			discountPrice,
 			discountPercent,
 			description,
-      unit,
-      quantity,
+			unit,
+			quantity,
 			category,
 			contactInfo,
 			image_list,
 			expires_at
 		} = body;
 
-		const user = locals.user?.id;
+		const user = locals.userId;
+
 		if (!user) return json({ success: false, error: 'Not authenticated' }, { status: 401 });
 
 		const supabase = locals.supabase;
@@ -29,7 +30,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const safeOriginalPrice = originalPrice === '' ? null : Number(originalPrice);
 		const safeDiscountPrice = discountPrice === '' ? null : Number(discountPrice);
 		const safeDiscountPercent = discountPercent === '' ? null : Number(discountPercent);
-
 
 		const { data, error } = await supabase.from('products').insert([
 			{
@@ -44,13 +44,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 				contact_information: contactInfo,
 				owner_id: user,
 				expires_at,
-        unit,
+				unit
 			}
 		]);
 
 		if (error) {
 			console.error('Supabase insert error:', error);
+			console.log(error);
 			return json({ success: false, error }, { status: 500 });
+		} else {
+			//TODO:ADD a log
 		}
 
 		return json({ success: true, deal: data }, { status: 200 });

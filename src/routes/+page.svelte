@@ -17,6 +17,7 @@
 	export let data;
 	const user = data?.user;
 	const userRole = data?.userRole;
+	console.log('userRole: ', userRole);
 
 	console.log(userRole);
 	let openCheckoutModal = false;

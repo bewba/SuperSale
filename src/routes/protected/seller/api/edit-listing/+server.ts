@@ -22,10 +22,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		const expires_at = formData.get('expires_at') as string | null;
 
-		const existingImages = JSON.parse(formData.get('existingImages') as string || '[]');
-		const removedImages = JSON.parse(formData.get('removedImages') as string || '[]');
+		const existingImages = JSON.parse((formData.get('existingImages') as string) || '[]');
+		const removedImages = JSON.parse((formData.get('removedImages') as string) || '[]');
 
-		const owner_id = locals.user?.id;
+		const owner_id = locals.userId;
 		if (!owner_id) {
 			return json({ error: 'Not authenticated' }, { status: 401 });
 		}
@@ -41,7 +41,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			reason_category,
 			expires_at,
 			contact_information,
-      unit,
+			unit
 		};
 
 		// If a new file is uploaded, update image
@@ -77,8 +77,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		// enforce max 4 images only
 		finalImages = finalImages.slice(0, 4);
 
-		updateFields.image_list = finalImages
-	
+		updateFields.image_list = finalImages;
+
 		// delete images from supbase
 		for (const url of removedImages) {
 			const path = url.split('/productImages/')[1];

@@ -3,10 +3,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './upload/$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-	const {
-		data: { user },
-		error: authError
-	} = await locals.supabase.auth.getUser();
+	const user = locals.user;
 
 	if (!user) {
 		console.log(`🚫 anonymous opened ${url.pathname}`);

@@ -1,13 +1,20 @@
-import { json } from '@sveltejs/kit';
+import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const PUT: RequestHandler = async ({ request, locals }) => {
 	try {
 		const { storeName, address, pickup, delivery, uploadedUrl, viberLink } = await request.json();
-		
-		console.log('Updating seller:', { storeName, address, pickup, delivery, uploadedUrl, viberLink });
-		
-		const userId = locals.user.id;
+
+		console.log('Updating seller:', {
+			storeName,
+			address,
+			pickup,
+			delivery,
+			uploadedUrl,
+			viberLink
+		});
+
+		const userId = locals.userId;
 		const sb = locals.supabase;
 
 		if (!storeName || !address) {
@@ -33,7 +40,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 			address,
 			pickup,
 			delivery,
-			viber_link: viberLink,
+			viber_link: viberLink
 		};
 
 		// Only update logo if a new one was provided
@@ -51,6 +58,8 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 		if (error) {
 			console.error('Update error:', error);
 			return json({ error: 'Failed to update store information' }, { status: 500 });
+		} else {
+			// TODO:ADD a log
 		}
 
 		return json({
@@ -58,7 +67,6 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 			message: 'Store information updated successfully',
 			data: { storeName, address, pickup, delivery, uploadedUrl, viberLink }
 		});
-
 	} catch (err) {
 		console.error('Error updating store:', err);
 		return json({ error: 'Internal Server Error' }, { status: 500 });
@@ -68,7 +76,7 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
 // fetch current seller data (without url params for ID)
 export const GET: RequestHandler = async ({ locals }) => {
 	try {
-		const userId = locals.user.id;
+		const userId = locals.userId;
 		const sb = locals.supabase;
 
 		const { data: sellerData, error } = await sb
@@ -81,6 +89,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 		if (error || !sellerData) {
 			console.error('Error fetching seller data:', error);
 			return json({ error: 'Seller data not found' }, { status: 404 });
+		} else {
+			// TODO:ADD a log
 		}
 
 		// Transform the data to match the component's expected format
@@ -91,8 +101,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 			delivery: sellerData.delivery,
 			logoUrl: sellerData.logo,
 			viberLink: sellerData.viber_link,
-			contactNumber: sellerData.viber_link 
-				? sellerData.viber_link.replace('viber://chat?number=%2B63', '') 
+			contactNumber: sellerData.viber_link
+				? sellerData.viber_link.replace('viber://chat?number=%2B63', '')
 				: ''
 		};
 
@@ -100,7 +110,6 @@ export const GET: RequestHandler = async ({ locals }) => {
 			success: true,
 			data: transformedData
 		});
-
 	} catch (err) {
 		console.error('Error fetching seller data:', err);
 		return json({ error: 'Internal Server Error' }, { status: 500 });
