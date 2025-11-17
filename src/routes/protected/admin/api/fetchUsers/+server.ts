@@ -1,10 +1,10 @@
 // src/routes/protected/admin/api/fetchUsers/+server.ts
-import { json, type RequestHandler } from '@sveltejs/kit';
+import { json, redirect, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals, request, url }) => {
 	// ✅ protect: only admin
-	if (locals.userRole !== 'admin') {
-		return json({ error: 'Forbidden' }, { status: 403 });
+	if (locals.userRole !== 'admin' && locals.userRole !== 'moderator') {
+		throw redirect(302, '/');
 	}
 
 	const supabase = locals.supabase;

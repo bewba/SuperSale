@@ -10,7 +10,7 @@
 		let msg;
 		if (userStatus === 'seller') {
 			msg = 'Seller Dashboard';
-		} else if (userStatus === 'admin') {
+		} else if (userStatus === 'admin' || userStatus === 'moderator') {
 			msg = 'Admin Dashboard';
 		} else if (isAuth && !userStatus) {
 			msg = 'Create Store!';
@@ -36,7 +36,7 @@
 		try {
 			if (userStatus === 'seller') {
 				await goto('/protected/seller');
-			} else if (userStatus === 'admin') {
+			} else if (userStatus === 'admin' || userStatus === 'moderator') {
 				await goto('/protected/admin');
 			} else if (isAuth) {
 				await goto('/protected/seller');

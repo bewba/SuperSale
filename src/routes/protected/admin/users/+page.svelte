@@ -13,7 +13,12 @@
 	};
 
 	const PAGE_LIMIT = 20;
-	export let CURRENT_USER_ROLE = 'admin';
+
+	export let data;
+	const CURRENT_USER_ROLE = data.role;
+	const CURRUSER = data.userId;
+
+	console.log(CURRENT_USER_ROLE, CURRUSER);
 	const ROLE_OPTIONS = ['moderator', 'admin', 'seller'];
 
 	let users: User[] = [];
@@ -110,7 +115,7 @@
 		} catch (err: any) {
 			// revert
 			users = users.map((u) => (u.id === userId ? { ...u, role: prev } : u));
-			toastError('Failed to update role: ' + (err?.message ?? 'Unknown error'));
+			toastError('Failed to update role: User does not have permission to perform this action!');
 		} finally {
 			updatingId = null;
 		}
@@ -192,7 +197,7 @@
 								<select
 									value={u.role ?? ''}
 									on:change={(e) => handleRoleChange(u.id, (e.target as HTMLSelectElement).value)}
-									disabled={updatingId === u.id || CURRENT_USER_ROLE === 'moderator'}
+									disabled={CURRUSER === u.id || CURRENT_USER_ROLE === 'moderator'}
 									class="cursor-pointer rounded border px-2 py-1"
 								>
 									<option value="">(no role)</option>
@@ -210,6 +215,7 @@
 								{#if canBan(u.role)}
 									<button
 										on:click={() => handleBan(u.id, u.role, u.is_banned)}
+										disabled={CURRUSER === u.id}
 										class="ml-2 cursor-pointer rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
 									>
 										{u.is_banned ? 'Unban' : 'Ban'}

@@ -3,7 +3,7 @@ import { checkUserRole } from '$lib/server/auth/roleCheck';
 import { redirect } from '@sveltejs/kit';
 
 export const load: LayoutServerLoad = async (event) => {
-	const isSeller = await checkUserRole(event, 'seller');
+	const isSeller = await checkUserRole(event, ['seller']);
 
 	console.log('sdaasd');
 	if (isSeller === 0) {
@@ -20,7 +20,7 @@ export const load: LayoutServerLoad = async (event) => {
 
 	// 2 = Not yet a seller
 	if (isSeller === 2) {
-		console.log('redirecting to createAccouint');
+		console.log('redirecting to createAccount');
 		throw redirect(302, '/createAccount');
 	}
 
