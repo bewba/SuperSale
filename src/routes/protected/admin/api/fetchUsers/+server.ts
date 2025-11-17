@@ -22,21 +22,22 @@ export const GET: RequestHandler = async ({ locals, request, url }) => {
     id,
     name,
     email,
+    is_banned,
     roles:roles!roles_userId_fkey1(
-      role,
-      is_banned
+      role
     )
   `
 			)
 			.order('id', { ascending: false })
 			.range(offset, offset + limit - 1);
-
 		// ✅ search by email
 		if (search) {
 			query = query.ilike('email', `%${search}%`);
 		}
 
 		const { data, error, count } = await query;
+
+		console.log(data);
 
 		if (error) {
 			console.error('❌ fetchUsers error:', error);
@@ -48,7 +49,7 @@ export const GET: RequestHandler = async ({ locals, request, url }) => {
 			name: row.name,
 			email: row.email,
 			role: row.roles?.role ?? null,
-			is_banned: row.roles?.is_banned ?? null
+			is_banned: row.is_banned ?? null
 		}));
 
 		return json({ users, count: count ?? 0 });

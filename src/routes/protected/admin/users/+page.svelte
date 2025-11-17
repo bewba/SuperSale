@@ -2,12 +2,14 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { readable, writable } from 'svelte/store';
+	import { toastSuccess, toastError } from '$lib/stores/toast';
 
 	type User = {
 		id: string;
 		email: string | null;
 		role: string | null;
 		created_at: string | null;
+		is_banned: boolean;
 	};
 
 	const PAGE_LIMIT = 20;
@@ -108,31 +110,41 @@
 		} catch (err: any) {
 			// revert
 			users = users.map((u) => (u.id === userId ? { ...u, role: prev } : u));
-			alert('Failed to update role: ' + (err?.message ?? 'Unknown error'));
+			toastError('Failed to update role: ' + (err?.message ?? 'Unknown error'));
 		} finally {
 			updatingId = null;
 		}
 	}
 
-	async function handleBan(userId: string, userRole: string | null) {
+	async function handleBan(userId: string, userRole: string | null, isBanned: boolean) {
 		if (!userRole) return;
-		// confirm action
-		if (!confirm(`Are you sure you want to ban this user (${userRole})?`)) return;
+
+		const action = isBanned ? 'unban' : 'ban';
+		if (!confirm(`Are you sure you want to ${action} this user (${userRole})?`)) return;
+
+		// Optimistic UI update
+		const prevUsers = [...users];
+		users = users.map((u) => (u.id === userId ? { ...u, is_banned: !isBanned } : u));
 
 		try {
-			const res = await fetch('/protected/admin/api/banUser', {
+			const res = await fetch(`/protected/admin/api/${action}User`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id: userId })
 			});
 			const body = await res.json();
-			if (!res.ok) throw new Error(body.error || 'Failed to ban user');
 
-			// remove user from list
-			users = users.filter((u) => u.id !== userId);
-			alert('User banned successfully.');
+			if (!res.ok) throw new Error(body.error || `Failed to ${action} user`);
+
+			// Update user with latest data from server
+			const updatedUser = body.user;
+			users = users.map((u) => (u.id === userId ? { ...u, is_banned: updatedUser.is_banned } : u));
+
+			toastSuccess(`User ${updatedUser.is_banned ? 'banned' : 'unbanned'} successfully.`);
 		} catch (err: any) {
-			alert('Failed to ban user: ' + (err?.message ?? 'Unknown error'));
+			// Revert optimistic update if failed
+			users = prevUsers;
+			toastError(`Failed to ${action} user: ` + (err?.message ?? 'Unknown error'));
 		}
 	}
 
@@ -180,7 +192,7 @@
 								<select
 									value={u.role ?? ''}
 									on:change={(e) => handleRoleChange(u.id, (e.target as HTMLSelectElement).value)}
-									disabled={updatingId === u.id}
+									disabled={updatingId === u.id || CURRENT_USER_ROLE === 'moderator'}
 									class="cursor-pointer rounded border px-2 py-1"
 								>
 									<option value="">(no role)</option>
@@ -197,10 +209,10 @@
 
 								{#if canBan(u.role)}
 									<button
-										on:click={() => handleBan(u.id, u.role)}
+										on:click={() => handleBan(u.id, u.role, u.is_banned)}
 										class="ml-2 cursor-pointer rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
 									>
-										Ban
+										{u.is_banned ? 'Unban' : 'Ban'}
 									</button>
 								{/if}
 							</td>
