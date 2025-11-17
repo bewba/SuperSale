@@ -11,7 +11,7 @@
 	import { browser } from '$app/environment';
 	import { getPb } from '$lib/pocketbase/pb.client';
 	// import type { Seller } from '$lib/types/types';
-
+	import { toastError } from '$lib/stores/toast.js';
 	import { goto } from '$app/navigation';
 
 	export let data;
@@ -19,7 +19,6 @@
 	const userRole = data?.userRole;
 	console.log('userRole: ', userRole);
 
-	console.log(userRole);
 	let openCheckoutModal = false;
 	let selectedDeal: any | null = null;
 	let deals: Deal[] = [];
@@ -199,7 +198,7 @@
 
 <div class="min-h-[100vh]">
 	<!-- Header -->
-	<Header userStatus={userRole} />
+	<Header userStatus={userRole} isAuth={user} />
 
 	<!-- Hero -->
 	<!-- <Hero /> -->

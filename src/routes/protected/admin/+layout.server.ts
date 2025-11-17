@@ -15,11 +15,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		fullName: user.user_metadata?.full_name || '(no name)'
 	});
 
-	console.log(user.id);
-
-	console.log(locals.userRole);
-	console.log(locals.userRole === 'admin');
-
 	const isAdmin = locals.userRole === 'admin';
 
 	if (!isAdmin) {

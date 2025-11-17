@@ -2,19 +2,27 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-	export let userStatus: string = '';
-	let message = '';
+	const { userStatus, isAuth } = $props<{ userStatus: string; isAuth: string }>();
 
-	if (userStatus === 'authenticated') {
-		message = 'Seller Dashboard';
-	} else if (userStatus === 'admin') {
-		message = 'Admin Dashboard';
-	} else {
-		message = 'Want to sell your surplus?';
-	}
+	console.log(userStatus);
 
-	let loading = false;
-	let scrolled = false;
+	const message = $derived(() => {
+		let msg;
+		if (userStatus === 'seller') {
+			msg = 'Seller Dashboard';
+		} else if (userStatus === 'admin') {
+			msg = 'Admin Dashboard';
+		} else if (isAuth && !userStatus) {
+			msg = 'Create Store!';
+		} else {
+			msg = 'Want to sell your surplus?';
+		}
+		return msg;
+	});
+
+	let loading = $state(false);
+	let scrolled = $state(false);
+
 	// Track if page is scrolling
 	onMount(() => {
 		const update = () => (scrolled = scrollY > 0);
@@ -26,12 +34,14 @@
 	async function handleClick() {
 		loading = true;
 		try {
-			if (userStatus === 'authenticated') {
+			if (userStatus === 'seller') {
 				await goto('/protected/seller');
 			} else if (userStatus === 'admin') {
 				await goto('/protected/admin');
+			} else if (isAuth) {
+				await goto('/protected/seller');
 			} else {
-				await goto('/');
+				await goto('/auth');
 			}
 		} finally {
 			loading = false;
@@ -41,17 +51,18 @@
 
 <header
 	class="sticky top-0 z-50 border-b border-gray-200 bg-[#eee] px-0 shadow-sm transition-transform
-  duration-300 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20"
+    duration-300 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20"
 >
 	<div class="flex w-full items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
 		<!-- Logo -->
 		<a href="/" class="flex shrink-0 items-center transition-opacity hover:opacity-80">
 			<img src="/logo.svg" alt="SuperSale-logo" class="h-10 w-auto sm:h-12 md:h-14" />
 		</a>
+
 		<!-- Seller button -->
 		<button
 			class="flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#0060a9] px-4 py-2 text-sm font-semibold whitespace-nowrap text-white shadow-sm transition-all duration-200 ease-in-out hover:bg-[#004d8c] hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-[#0060a9] disabled:hover:shadow-sm sm:px-5 sm:py-2.5 sm:text-base"
-			on:click={handleClick}
+			onclick={handleClick}
 			disabled={loading}
 		>
 			{#if loading}
@@ -73,7 +84,7 @@
 				</svg>
 				<span>Loading...</span>
 			{:else}
-				{message}
+				{message()}
 			{/if}
 		</button>
 	</div>

@@ -11,6 +11,7 @@
 	};
 
 	const PAGE_LIMIT = 20;
+	export let CURRENT_USER_ROLE = 'admin';
 	const ROLE_OPTIONS = ['moderator', 'admin', 'seller'];
 
 	let users: User[] = [];
@@ -35,8 +36,10 @@
 			if (search.trim()) params.set('search', search.trim());
 
 			const res = await fetch(`/protected/admin/api/fetchUsers?${params.toString()}`);
+
 			if (!res.ok) {
 				const body = await res.json().catch(() => ({}));
+
 				throw new Error(body?.error || 'Failed to fetch users');
 			}
 			const body = await res.json();
@@ -110,6 +113,34 @@
 			updatingId = null;
 		}
 	}
+
+	async function handleBan(userId: string, userRole: string | null) {
+		if (!userRole) return;
+		// confirm action
+		if (!confirm(`Are you sure you want to ban this user (${userRole})?`)) return;
+
+		try {
+			const res = await fetch('/protected/admin/api/banUser', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id: userId })
+			});
+			const body = await res.json();
+			if (!res.ok) throw new Error(body.error || 'Failed to ban user');
+
+			// remove user from list
+			users = users.filter((u) => u.id !== userId);
+			alert('User banned successfully.');
+		} catch (err: any) {
+			alert('Failed to ban user: ' + (err?.message ?? 'Unknown error'));
+		}
+	}
+
+	function canBan(userRole: string | null) {
+		if (CURRENT_USER_ROLE === 'admin') return userRole !== 'admin';
+		if (CURRENT_USER_ROLE === 'moderator') return userRole === 'seller';
+		return false;
+	}
 </script>
 
 <svelte:head>
@@ -135,34 +166,22 @@
 				<thead class="bg-gray-100">
 					<tr>
 						<th class="px-4 py-3 text-left">Email</th>
-						<th class="px-4 py-3 text-left">Created</th>
 						<th class="px-4 py-3 text-left">Role</th>
 					</tr>
 				</thead>
 				<tbody>
-					{#if users.length === 0 && !loading}
-						<tr>
-							<td colspan="3" class="px-4 py-6 text-center text-gray-500">No users found.</td>
-						</tr>
-					{/if}
-
 					{#each users as u (u.id)}
 						<tr class="border-t">
 							<td class="px-4 py-3">
 								<div class="text-sm">{u.email ?? '—'}</div>
 								<div class="text-xs text-gray-500">{u.id}</div>
 							</td>
-							<td class="px-4 py-3">
-								<div class="text-sm">
-									{u.created_at ? new Date(u.created_at).toLocaleString() : '—'}
-								</div>
-							</td>
-							<td class="px-4 py-3">
+							<td class="flex items-center gap-2 px-4 py-3">
 								<select
 									value={u.role ?? ''}
 									on:change={(e) => handleRoleChange(u.id, (e.target as HTMLSelectElement).value)}
 									disabled={updatingId === u.id}
-									class="rounded border px-2 py-1"
+									class="cursor-pointer rounded border px-2 py-1"
 								>
 									<option value="">(no role)</option>
 									{#each ROLE_OPTIONS as r}
@@ -171,8 +190,18 @@
 										>
 									{/each}
 								</select>
+
 								{#if updatingId === u.id}
 									<span class="ml-2 text-sm">Saving…</span>
+								{/if}
+
+								{#if canBan(u.role)}
+									<button
+										on:click={() => handleBan(u.id, u.role)}
+										class="ml-2 cursor-pointer rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+									>
+										Ban
+									</button>
 								{/if}
 							</td>
 						</tr>

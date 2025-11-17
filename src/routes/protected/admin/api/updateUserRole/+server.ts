@@ -3,19 +3,6 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-	throw new Error(
-		'Missing Supabase env variables: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY'
-	);
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-	auth: { persistSession: false }
-});
-
 const ALLOWED = ['moderator', 'admin', 'seller'];
 
 export const POST: RequestHandler = async (event) => {
@@ -24,6 +11,8 @@ export const POST: RequestHandler = async (event) => {
 	if (!isAdmin) {
 		return json({ error: 'Forbidden' }, { status: 403 });
 	}
+
+	let supabase = event.locals.supabase;
 
 	try {
 		const body = await event.request.json();
@@ -41,7 +30,7 @@ export const POST: RequestHandler = async (event) => {
 			.from('roles')
 			.update({ role: String(role).toLowerCase() })
 			.eq('id', id)
-			.select('id,role');
+			.select('id, role');
 
 		if (error) {
 			console.error('updateUserRole error', error);

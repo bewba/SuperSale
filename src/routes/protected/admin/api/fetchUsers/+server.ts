@@ -16,21 +16,24 @@ export const GET: RequestHandler = async ({ locals, request, url }) => {
 	try {
 		// ✅ join auth.users to get email
 		let query = supabase
-			.from('roles')
+			.from('users')
 			.select(
 				`
-				id,
-				userId,
-				role,
-				created_at
-				`
+    id,
+    name,
+    email,
+    roles:roles!roles_userId_fkey1(
+      role,
+      is_banned
+    )
+  `
 			)
-			.order('created_at', { ascending: false })
+			.order('id', { ascending: false })
 			.range(offset, offset + limit - 1);
 
 		// ✅ search by email
 		if (search) {
-			query = query.ilike('auth.email', `%${search}%`);
+			query = query.ilike('email', `%${search}%`);
 		}
 
 		const { data, error, count } = await query;
@@ -40,13 +43,12 @@ export const GET: RequestHandler = async ({ locals, request, url }) => {
 			return json({ error: error.message }, { status: 500 });
 		}
 
-		// ✅ normalize response
 		const users = (data ?? []).map((row: any) => ({
 			id: row.id,
-			userId: row.userId,
-			role: row.role,
-			created_at: row.created_at,
-			email: row.auth?.email ?? '(no email)'
+			name: row.name,
+			email: row.email,
+			role: row.roles?.role ?? null,
+			is_banned: row.roles?.is_banned ?? null
 		}));
 
 		return json({ users, count: count ?? 0 });

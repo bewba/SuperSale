@@ -61,12 +61,7 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 			.eq('userId', event.locals.userId)
 			.single();
 
-		console.log('userRole: ', roleData);
-		console.log('roleError: ', roleError);
-
 		event.locals.userRole = roleData?.role ?? null;
-
-		console.log('event.locals.userRole: ', event.locals.userRole);
 	} else {
 		event.locals.userRole = 'anon';
 	}
