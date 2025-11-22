@@ -8,11 +8,15 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		const { request, locals } = event;
 
+		console.log('1');
+
 		const roleCheck = await checkUserRole(event, ['seller']);
 		if (roleCheck != 0) {
 			// Access control logging is handled in checkUserRole
 			throw redirect(302, '/unauthorized');
 		}
+
+		console.log('2');
 
 		const body = await request.json();
 
@@ -38,6 +42,7 @@ export const POST: RequestHandler = async (event) => {
 
 		const supabase = locals.supabase;
 
+		console.log('3');
 		// Type validation
 		const typeValidation = await validateTypes(supabase, user, [
 			{ value: productName, expectedType: 'string', fieldName: 'productName', required: true },
@@ -51,7 +56,7 @@ export const POST: RequestHandler = async (event) => {
 			},
 			{ value: description, expectedType: 'string', fieldName: 'description', required: false },
 			{ value: unit, expectedType: 'string', fieldName: 'unit', required: false },
-			{ value: quantity, expectedType: 'number', fieldName: 'quantity', required: false },
+			{ value: quantity, expectedType: 'string', fieldName: 'quantity', required: false },
 			{ value: category, expectedType: 'string', fieldName: 'category', required: false },
 			{ value: contactInfo, expectedType: 'string', fieldName: 'contactInfo', required: false },
 			{ value: image_list, expectedType: 'array', fieldName: 'image_list', required: false },
@@ -64,7 +69,7 @@ export const POST: RequestHandler = async (event) => {
 				{ status: 400 }
 			);
 		}
-
+		console.log('4');
 		// PH time
 		const nowPH = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
 
