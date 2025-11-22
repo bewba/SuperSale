@@ -1,5 +1,6 @@
 import { json, redirect, type RequestHandler } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	if (locals.userRole !== 'admin' && locals.userRole !== 'moderator') {
@@ -12,11 +13,16 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	}
 
 	const supabase = locals.supabase;
-	const { id: userId } = await request.json();
+	const body = await request.json();
+	const { id: userId } = body;
 
-	if (!userId) {
-		await logEvent(supabase, locals.userId, `Validation failure: Missing user id in unban request`);
-		return json({ error: 'Invalid payload: missing user id' }, { status: 400 });
+	// Type validation
+	const typeValidation = await validateTypes(supabase, locals.userId, [
+		{ value: userId, expectedType: 'string', fieldName: 'id', required: true }
+	]);
+
+	if (!typeValidation.valid) {
+		return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
 	}
 
 	try {

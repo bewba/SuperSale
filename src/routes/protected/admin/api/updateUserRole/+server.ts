@@ -2,6 +2,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json, redirect } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 const ALLOWED = ['moderator', 'admin', 'seller'];
 
@@ -31,13 +32,14 @@ export const POST: RequestHandler = async (event) => {
 		const body = await event.request.json();
 		const { id, role } = body ?? {};
 
-		if (!id || !role) {
-			await logEvent(
-				supabase,
-				event.locals.userId,
-				`Validation failure: Missing required fields (id: ${!!id}, role: ${!!role})`
-			);
-			return json({ error: 'Missing id or role' }, { status: 400 });
+		// Type validation
+		const typeValidation = await validateTypes(supabase, event.locals.userId, [
+			{ value: id, expectedType: 'string', fieldName: 'id', required: true },
+			{ value: role, expectedType: 'string', fieldName: 'role', required: true }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
 		}
 
 		if (!ALLOWED.includes(role.toLowerCase())) {

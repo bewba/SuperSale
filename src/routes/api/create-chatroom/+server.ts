@@ -2,10 +2,40 @@
 import type { RequestHandler } from './$types';
 import { sendSingleEmail } from '$lib/utils/email';
 import { SITE_NATURE } from '$env/static/private';
+import { validateTypes } from '$lib/server/utils/typeValidator';
+import { logEvent } from '$lib/server/utils/logger';
 
 export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	try {
-		const { selectedDeal } = await request.json();
+		const body = await request.json();
+		const { selectedDeal } = body;
+
+		// Type validation
+		if (!selectedDeal || typeof selectedDeal !== 'object') {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Type validation failure: selectedDeal is missing or invalid (type: ${typeof selectedDeal})`
+			);
+			return new Response(JSON.stringify({ success: false, error: 'Invalid selectedDeal data' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			});
+		}
+
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: selectedDeal.owner_id, expectedType: 'string', fieldName: 'selectedDeal.owner_id', required: true },
+			{ value: selectedDeal.id, expectedType: 'string', fieldName: 'selectedDeal.id', required: true },
+			{ value: selectedDeal.title, expectedType: 'string', fieldName: 'selectedDeal.title', required: false },
+			{ value: selectedDeal.image_list, expectedType: 'array', fieldName: 'selectedDeal.image_list', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return new Response(JSON.stringify({ success: false, error: 'Invalid input types', details: typeValidation.errors }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			});
+		}
 
 		let buyerId: string = '';
 		let username: string | null = null;

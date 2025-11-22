@@ -2,6 +2,7 @@ import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 type Order = {
 	uuid: string;
@@ -15,18 +16,37 @@ type Order = {
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const { order } = await request.json();
+		const body = await request.json();
+		const { order } = body;
 
-		console.log('Order (object):', order); // expand in console
-		console.log('Order (string):', JSON.stringify(order, null, 2)); // pretty-print
+		// Type validation
+		if (!order || typeof order !== 'object') {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Type validation failure: Order object is missing or invalid (type: ${typeof order})`
+			);
+			return json({ error: 'Invalid order data' }, { status: 400 });
+		}
 
 		const orderId = order.uuid;
-		console.log('OrderId:', orderId);
 
-		console.log(orderId);
-		if (!orderId) {
-			return json({ error: 'orderId is required' }, { status: 400 });
+		// Validate order fields
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: orderId, expectedType: 'string', fieldName: 'order.uuid', required: true },
+			{ value: order.contactNumber, expectedType: 'string', fieldName: 'order.contactNumber', required: false },
+			{ value: order.customerName, expectedType: 'string', fieldName: 'order.customerName', required: false },
+			{ value: order.email, expectedType: 'string', fieldName: 'order.email', required: false },
+			{ value: order.quantity, expectedType: 'number', fieldName: 'order.quantity', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
 		}
+
+		console.log('Order (object):', order);
+		console.log('Order (string):', JSON.stringify(order, null, 2));
+		console.log('OrderId:', orderId);
 
 		const { data, error } = await locals.supabase
 			.from('orders')

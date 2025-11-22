@@ -1,6 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 type EmailPayload = {
 	recipient: string;
@@ -52,6 +53,27 @@ export const GET: RequestHandler = async ({ locals }) => {
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const body = await request.json();
+
+		// Type validation
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: body.email, expectedType: 'string', fieldName: 'email', required: true },
+			{ value: body.quantity, expectedType: 'number', fieldName: 'quantity', required: true },
+			{ value: body.dealTotal, expectedType: 'number', fieldName: 'dealTotal', required: true },
+			{ value: body.dealTitle, expectedType: 'string', fieldName: 'dealTitle', required: true },
+			{ value: body.owner, expectedType: 'string', fieldName: 'owner', required: true },
+			{ value: body.name, expectedType: 'string', fieldName: 'name', required: true },
+			{ value: body.contactNumber, expectedType: 'string', fieldName: 'contactNumber', required: true },
+			{ value: body.dealId, expectedType: 'string', fieldName: 'dealId', required: true }
+		]);
+
+		if (!typeValidation.valid) {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Type validation failure in order creation: ${typeValidation.errors.join('; ')}`
+			);
+			return new Response(JSON.stringify({ error: 'Invalid input types', details: typeValidation.errors }), { status: 400 });
+		}
 
 		console.log(body);
 

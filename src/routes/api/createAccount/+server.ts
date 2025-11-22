@@ -2,6 +2,7 @@ import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { checkUserRole } from '$lib/server/auth/roleCheck';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -9,12 +10,31 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			redirect(302, '/auth');
 		}
 
-		const { storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink } =
-			await request.json();
+		const body = await request.json();
+		const { storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink } = body;
+
+		const sb = locals.supabase;
+
+		// Type validation
+		const typeValidation = await validateTypes(sb, locals.userId, [
+			{ value: storeName, expectedType: 'string', fieldName: 'storeName', required: true },
+			{ value: address, expectedType: 'string', fieldName: 'address', required: true },
+			{ value: pickup, expectedType: 'boolean', fieldName: 'pickup', required: true },
+			{ value: delivery, expectedType: 'boolean', fieldName: 'delivery', required: true },
+			{ value: termsAccepted, expectedType: 'boolean', fieldName: 'termsAccepted', required: true },
+			{ value: uploadedUrl, expectedType: 'string', fieldName: 'uploadedUrl', required: true },
+			{ value: viberLink, expectedType: 'string', fieldName: 'viberLink', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json(
+				{ error: 'Invalid input types', details: typeValidation.errors },
+				{ status: 400 }
+			);
+		}
 
 		console.log(storeName, address, pickup, delivery, termsAccepted, uploadedUrl, viberLink);
 		const viber_link = viberLink;
-		const sb = locals.supabase;
 
 		if (!storeName || !address) {
 			await logEvent(

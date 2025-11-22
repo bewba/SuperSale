@@ -2,6 +2,7 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { redirect } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async ({ locals, request }) => {
 	// only admins/moderators can ban/unban
@@ -18,9 +19,13 @@ export const POST: RequestHandler = async ({ locals, request }) => {
 	const body = await request.json();
 	const { id: userId } = body; // match the frontend payload
 
-	if (!userId) {
-		await logEvent(supabase, locals.userId, `Validation failure: Missing user id in ban request`);
-		return json({ error: 'Invalid payload: missing user id' }, { status: 400 });
+	// Type validation
+	const typeValidation = await validateTypes(supabase, locals.userId, [
+		{ value: userId, expectedType: 'string', fieldName: 'id', required: true }
+	]);
+
+	if (!typeValidation.valid) {
+		return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
 	}
 
 	try {

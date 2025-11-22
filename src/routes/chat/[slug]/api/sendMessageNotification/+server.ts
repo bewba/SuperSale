@@ -2,6 +2,8 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
 import { SITE_NATURE } from '$env/static/private';
 import { getPbBackground } from '$lib/pocketbase/pb.client';
+import { validateTypes } from '$lib/server/utils/typeValidator';
+import { logEvent } from '$lib/server/utils/logger';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -11,9 +13,16 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const recipientId = requestData.recipient;
 		const hasEmail = requestData.hasEmail;
 
-		if (!recipientId) {
-			return new Response(JSON.stringify({ error: 'Recipient ID required' }), {
-				status: 400
+		// Type validation
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: recipientId, expectedType: 'string', fieldName: 'recipient', required: true },
+			{ value: hasEmail, expectedType: 'boolean', fieldName: 'hasEmail', required: true }
+		]);
+
+		if (!typeValidation.valid) {
+			return new Response(JSON.stringify({ error: 'Invalid input types', details: typeValidation.errors }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
 			});
 		}
 

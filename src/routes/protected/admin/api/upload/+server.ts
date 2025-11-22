@@ -1,6 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -10,10 +11,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		const file = formData.get('image') as File;
 		const title = formData.get('title') as string;
-		const quantity = Number(formData.get('quantity'));
-		const original_price = Number(formData.get('original_price'));
-		const discount_price = Number(formData.get('discount_price'));
-		const discount_percent = Number(formData.get('discount_percent'));
+		const quantityStr = formData.get('quantity') as string;
+		const original_priceStr = formData.get('original_price') as string;
+		const discount_priceStr = formData.get('discount_price') as string;
+		const discount_percentStr = formData.get('discount_percent') as string;
 		const reason = formData.get('reason') as string;
 		const reason_category = formData.get('category') as string;
 		const expires_at = formData.get('expires_at') as string;
@@ -23,6 +24,35 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		if (!user) return json({ success: false, error: 'Not authenticated' }, { status: 401 });
 
 		const supabase = locals.supabase;
+
+		// Type validation for form data (all formData values are strings or File)
+		const typeValidation = await validateTypes(supabase, user, [
+			{ value: title, expectedType: 'string', fieldName: 'title', required: true },
+			{ value: quantityStr, expectedType: 'string', fieldName: 'quantity', required: true },
+			{ value: original_priceStr, expectedType: 'string', fieldName: 'original_price', required: false },
+			{ value: discount_priceStr, expectedType: 'string', fieldName: 'discount_price', required: false },
+			{ value: discount_percentStr, expectedType: 'string', fieldName: 'discount_percent', required: false },
+			{ value: reason, expectedType: 'string', fieldName: 'reason', required: false },
+			{ value: reason_category, expectedType: 'string', fieldName: 'category', required: false },
+			{ value: expires_at, expectedType: 'string', fieldName: 'expires_at', required: true },
+			{ value: contact_information, expectedType: 'string', fieldName: 'contactInfo', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ success: false, error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
+		}
+
+		// Validate file
+		if (!file || !(file instanceof File)) {
+			await logEvent(supabase, user, `Type validation failure: File is missing or invalid (type: ${typeof file})`);
+			return json({ success: false, error: 'Image file is required' }, { status: 400 });
+		}
+
+		// Parse numeric values
+		const quantity = Number(quantityStr);
+		const original_price = Number(original_priceStr);
+		const discount_price = Number(discount_priceStr);
+		const discount_percent = Number(discount_percentStr);
 
 		// Upload image to productImages bucket
 		const fileName = `${crypto.randomUUID()}_${file.name}`;
@@ -49,11 +79,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			{
 				title,
 				image: imageUrl,
-				quantity,
-				original_price,
+				quantity: isNaN(quantity) ? 1 : quantity,
+				original_price: isNaN(original_price) ? null : original_price,
 				reason_category,
-				discount_price,
-				discount_percent,
+				discount_price: isNaN(discount_price) ? null : discount_price,
+				discount_percent: isNaN(discount_percent) ? null : discount_percent,
 				contact_information,
 				reason,
 				expires_at,

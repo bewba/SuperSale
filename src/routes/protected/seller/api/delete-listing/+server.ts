@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json, redirect } from '@sveltejs/kit';
 import { checkUserRole } from '$lib/server/auth/roleCheck';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async (event) => {
 	try {
@@ -15,11 +16,21 @@ export const POST: RequestHandler = async (event) => {
 
 		const body = await request.json().catch(() => null);
 
-		if (!body || !body.dealId) {
-			return json({ error: 'dealId is required' }, { status: 400 });
+		if (!body) {
+			await logEvent(locals.supabase, locals.userId, `Type validation failure: Request body is null or invalid`);
+			return json({ error: 'Invalid request body' }, { status: 400 });
 		}
 
 		const { dealId } = body;
+
+		// Type validation
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: dealId, expectedType: 'string', fieldName: 'dealId', required: true }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
+		}
 
 		console.log(dealId);
 
