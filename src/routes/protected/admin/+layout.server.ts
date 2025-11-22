@@ -15,19 +15,7 @@ export const load: PageServerLoad = async (event) => {
 
 	if (isAdmin === 1) {
 		throw redirect(302, '/auth');
-	}
-
-	// 2 = Not yet a seller
-	if (isAdmin === 2) {
-		console.log('redirecting to createAccount');
-		throw redirect(302, '/createAccount');
-	}
-
-	// 3 = Not authorized
-	if (isAdmin === 3) {
+	} else {
 		throw redirect(302, '/unauthorized');
 	}
-
-	// fallback (optional)
-	throw redirect(302, '/');
 };
