@@ -1,42 +1,34 @@
-// src/routes/+layout.server.ts
-import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
+import { checkUserRole } from '$lib/server/auth/roleCheck';
+import { redirect } from '@sveltejs/kit';
 
-export const load: LayoutServerLoad = async ({ locals, url }) => {
-	const user = locals.user;
+export const load: LayoutServerLoad = async (event) => {
+	const isSeller = await checkUserRole(event, ['seller']);
 
-	if (!user) {
-		console.log(`🚫 anonymous opened ${url.pathname}`);
+	console.log('sdaasd');
+	if (isSeller === 0) {
+		return {
+			user: event.locals.user,
+			role: event.locals.userRole
+		};
+	}
+
+	console.log(event.locals.user);
+	if (isSeller === 1) {
 		throw redirect(302, '/auth');
 	}
 
-	console.log(`✅ user opened ${url.pathname}`, {
-		email: user.email,
-		fullName: user.user_metadata?.full_name || '(no name)'
-	});
-
-	console.log(user.id);
-
-	// check roles table
-	const { data: rolesData, error: rolesError } = await locals.supabase
-		.from('roles')
-		.select('*')
-		.eq('userId', user.id)
-		.eq('role', 'seller')
-		.maybeSingle(); // 👈 safer
-
-	const isAdmin = !!rolesData;
-
-	if (!isAdmin) {
-		console.log(`❌ Redirecting user to seller confirmation: ${user.email}`);
+	// 2 = Not yet a seller
+	if (isSeller === 2) {
+		console.log('redirecting to createAccount');
 		throw redirect(302, '/createAccount');
-	} else {
-		console.log(`✅ Redirecting user to personal dashboard: ${user.email}`);
 	}
 
-	return {
-		user,
-		isAdmin,
-		supabaseError: rolesError ? { message: rolesError.message, status: rolesError.status } : null
-	};
+	// 3 = Not authorized
+	if (isSeller === 3) {
+		throw redirect(302, '/unauthorized');
+	}
+
+	// fallback (optional)
+	throw redirect(302, '/');
 };

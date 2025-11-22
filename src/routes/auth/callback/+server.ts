@@ -1,4 +1,5 @@
 import { redirect } from '@sveltejs/kit';
+import { logEvent } from '$lib/server/utils/logger';
 
 export const GET = async (event: any) => {
 	const {
@@ -15,8 +16,35 @@ export const GET = async (event: any) => {
 
 		if (sessionError || !sessionData?.user?.id) {
 			console.error(sessionError);
+			await logEvent(
+				supabase,
+				null,
+				`Authentication failure: OAuth callback error - ${sessionError?.message || 'No user ID'}`
+			);
 			throw redirect(303, '/auth/auth-code-error');
 		}
+
+		const userId = sessionData.user.id;
+		const userEmail = sessionData.user.email;
+
+		// Check if user is banned
+		const { data: userData } = await supabase
+			.from('users')
+			.select('is_banned')
+			.eq('id', userId)
+			.single();
+
+		if (userData?.is_banned) {
+			await logEvent(
+				supabase,
+				userId,
+				`Authentication failure: Banned user attempted OAuth login - ${userEmail}`
+			);
+			await supabase.auth.signOut();
+			throw redirect(303, '/auth?error=banned');
+		}
+
+		await logEvent(supabase, userId, `Successful OAuth login: ${userEmail}`);
 
 		const userId = sessionData.user.id;
 

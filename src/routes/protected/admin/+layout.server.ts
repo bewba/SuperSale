@@ -1,50 +1,33 @@
 // src/routes/+page.server.ts
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './upload/$types';
+import { checkUserRole } from '$lib/server/auth/roleCheck';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-	const {
-		data: { user },
-		error: authError
-	} = await locals.supabase.auth.getUser();
-
-	if (!user) {
-		console.log(`🚫 anonymous opened ${url.pathname}`);
-		throw redirect(302, '/');
+export const load: PageServerLoad = async (event) => {
+	const isAdmin = await checkUserRole(event, ['admin', 'moderator']);
+	console.log(isAdmin);
+	if (isAdmin === 0) {
+		return {
+			userId: event.locals.userId,
+			role: event.locals.userRole
+		};
 	}
 
-	console.log(`✅ user opened ${url.pathname}`, {
-		email: user.email,
-		fullName: user.user_metadata?.full_name || '(no name)'
-	});
-
-	console.log(user.id);
-
-	// check roles table
-	const { data: rolesData, error: rolesError } = await locals.supabase
-		.from('roles')
-		.select('*')
-		.eq('userId', user.id)
-		.eq('role', 'admin')
-		.single();
-
-	console.log(rolesData, rolesError);
-
-	const isAdmin = !!rolesData;
-
-	if (!isAdmin) {
-		console.log(`❌ user is not admin: ${user.email}`);
-		throw redirect(302, '/');
-	} else {
-		console.log(`✅ user is admin: ${user.email}`);
+	if (isAdmin === 1) {
+		throw redirect(302, '/auth');
 	}
 
-	return {
-		user,
-		isAdmin,
-		supabaseError:
-			authError || rolesError
-				? { message: (authError || rolesError)?.message, status: (authError || rolesError)?.status }
-				: null
-	};
+	// 2 = Not yet a seller
+	if (isAdmin === 2) {
+		console.log('redirecting to createAccount');
+		throw redirect(302, '/createAccount');
+	}
+
+	// 3 = Not authorized
+	if (isAdmin === 3) {
+		throw redirect(302, '/unauthorized');
+	}
+
+	// fallback (optional)
+	throw redirect(302, '/');
 };

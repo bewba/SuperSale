@@ -133,6 +133,20 @@
 			return;
 		}
 
+		if (storeName.trim().length > 50) {
+			errorMessage = 'Store name cannot exceed 50 characters';
+			toastError('Store name too long', { title: 'Error', duration: 2500 });
+			return;
+		}
+
+		if (address.trim().length > 200) {
+			toastError('Address cannot exceed 200 characters', {
+				title: 'Error',
+				duration: 2500
+			});
+			return;
+		}
+
 		loading = true;
 		try {
 			let uploadedUrl: string | null = null;
@@ -289,8 +303,12 @@
 							type="text"
 							bind:value={storeName}
 							placeholder="Enter your store name"
+							maxlength="50"
 							class="w-full rounded-xl border-2 border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:border-gray-900 focus:ring-0 focus:outline-none sm:px-4 sm:py-3 sm:text-base lg:py-4"
 						/>
+						<p class="text-xs text-gray-500">
+							{storeName.length}/50
+						</p>
 						{#if errorMessage}
 							<p class="text-xs text-red-600 sm:text-sm">{errorMessage}</p>
 						{/if}
@@ -305,12 +323,15 @@
 							bind:value={address}
 							placeholder="Enter your store address"
 							rows="3"
+							maxlength="200"
 							class="w-full resize-none rounded-xl border-2 border-gray-300 bg-white px-3 py-2
 								   text-sm text-gray-900 placeholder-gray-400 transition-colors
 								   focus:border-gray-900 focus:ring-0 focus:outline-none
 								   sm:px-4 sm:py-3 sm:text-base lg:py-4"
 						></textarea>
-
+						<p class="text-xs text-gray-500">
+							{address.length}/200
+						</p>
 						<button
 							type="button"
 							on:click={getCurrentLocation}

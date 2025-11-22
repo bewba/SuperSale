@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import supabase from '$lib/supabase/supabaseClient';
+	import { signIn } from '@auth/sveltekit/client';
 
 	let email = '';
 	let password = '';
@@ -77,7 +77,7 @@
 			<div class="space-y-3">
 				<button
 					type="button"
-					on:click={() => goto('/auth/login/google')}
+					on:click={signIn('google', { callbackUrl: '/' })}
 					class="flex w-full transform cursor-pointer items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-700 transition-all duration-200 hover:scale-[1.02] hover:border-gray-400 hover:bg-gray-50 hover:shadow-md"
 				>
 					<svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -117,7 +117,7 @@
 			</div>
 
 			<!-- Divider -->
-			<div class="relative">
+			<!-- <div class="relative">
 				<div class="absolute inset-0 flex items-center">
 					<div class="w-full border-t border-gray-300"></div>
 				</div>
@@ -168,11 +168,11 @@
 					>
 						Remember Me
 					</label>
-				</div>
+				</div> -->
 
-				<div class="text-sm">
-					<!-- svelte-ignore a11y_invalid_attribute -->
-					<a
+			<!-- <div class="text-sm"> -->
+			<!-- svelte-ignore a11y_invalid_attribute -->
+			<!-- <a
 						href="#"
 						class="font-medium text-gray-700 transition-all duration-200 hover:text-gray-900 hover:underline"
 					>
@@ -200,10 +200,10 @@
 
 			<div class="text-center">
 				<p class="text-sm text-gray-600">
-					Don't have an account?
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_missing_attribute -->
-					<a
+					Don't have an account? -->
+			<!-- svelte-ignore a11y_click_events_have_key_events -->
+			<!-- svelte-ignore a11y_missing_attribute -->
+			<!-- <a
 						on:click={() => goto('/auth/signup')}
 						class="cursor-pointer font-medium text-blue-500 transition-all duration-200 hover:text-orange-500 hover:underline"
 					>
@@ -211,6 +211,7 @@
 					</a>
 				</p>
 			</div>
+		</form> -->
 		</form>
 	</div>
 </div>

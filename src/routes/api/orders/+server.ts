@@ -1,5 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
+import { logEvent } from '$lib/server/utils/logger';
 
 type EmailPayload = {
 	recipient: string;
@@ -360,14 +361,30 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (error) {
 			console.error('Supabase insert error:', error);
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Failed to create order for product "${body.dealTitle}": ${error.message}`
+			);
 			return new Response(JSON.stringify({ error: error.message }), { status: 500 });
 		}
+
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Order created: Order for "${body.dealTitle}" (Order ID: ${data[0]?.uuid || 'unknown'}, Quantity: ${body.quantity}, Total: ₱${body.dealTotal})`
+		);
 
 		return new Response(JSON.stringify({ success: true, order: data[0] }), {
 			headers: { 'Content-Type': 'application/json' }
 		});
 	} catch (err: any) {
 		console.error('Error inserting order:', err);
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Error creating order: ${err?.message ?? 'Unknown error'}`
+		);
 		return new Response(JSON.stringify({ error: 'Server error' }), { status: 500 });
 	}
 };

@@ -1,9 +1,15 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { json } from '@sveltejs/kit';
+import { json, redirect } from '@sveltejs/kit';
+import { checkUserRole } from '$lib/server/auth/roleCheck';
+import { logEvent } from '$lib/server/utils/logger';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async (event) => {
 	try {
-		console.log('hello');
+		const { request, locals } = event;
+
+		if ((await checkUserRole(event, ['seller'])) != 0) {
+			throw redirect(302, '/unauthorized');
+		}
 
 		const formData = await request.formData();
 
@@ -30,6 +36,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (uploadError) {
 			console.error('Supabase storage upload error:', uploadError);
+			await logEvent(
+				supabase,
+				user,
+				`Failed to upload product image for "${title}": ${uploadError.message}`
+			);
 			return json({ success: false, error: uploadError.message }, { status: 500 });
 		}
 
@@ -56,12 +67,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (error) {
 			console.error('Supabase insert error:', error);
+			await logEvent(
+				supabase,
+				user,
+				`Failed to create product "${title}": ${error.message}`
+			);
 			return json({ success: false, error }, { status: 500 });
 		}
+
+		await logEvent(
+			supabase,
+			user,
+			`Product created: "${title}" (ID: ${data?.[0]?.id || 'unknown'})`
+		);
 
 		return json({ success: true, deal: data }, { status: 200 });
 	} catch (err) {
 		console.error('Server error:', err);
+		await logEvent(
+			locals.supabase,
+			locals.user?.id || null,
+			`Error creating product: ${err instanceof Error ? err.message : 'Unknown error'}`
+		);
 		return json({ success: false, error: 'Server error' }, { status: 500 });
 	}
 };

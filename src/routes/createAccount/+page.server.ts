@@ -11,14 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(302, '/auth');
 	}
 
-	// 🔍 Check if user has a role
-	const { data: role, error } = await sb
-		.from('roles')
-		.select('role')
-		.eq('userId', user.id)
-		.single();
-
-	console.log(role, error);
+	let role = locals.userRole;
 
 	// if (role) {
 	// 	throw redirect(302, '/protected/seller');

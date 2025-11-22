@@ -203,8 +203,8 @@
 			if (deal.imageFiles?.length > 0) {
 				for (const file of deal.imageFiles) {
 					const compressedFile = await imageCompression(file, {
-						maxSizeMB: 0.15, // target max size in MB
-						maxWidthOrHeight: 1024, // resize large images
+						maxSizeMB: 0.15,
+						maxWidthOrHeight: 1024,
 						useWebWorker: true
 					});
 
@@ -233,6 +233,8 @@
 				})
 			});
 
+			console.log(res.body);
+
 			if (!res.ok) throw new Error(`Failed to add listing: ${res.status}`);
 
 			const data = await res.json();
@@ -248,6 +250,10 @@
 			console.error('❌ Error adding listing:', err);
 			toastError(`Error Creating Listing!`, { title: 'An error occured', duration: 2000 });
 		}
+	}
+
+	function changeView(view: string) {
+		currentView = view;
 	}
 
 	function editListing(deal: Deal) {
@@ -491,7 +497,7 @@
 			/>
 		{:else if currentView === 'edit-profile'}
 			<div class="flex h-full w-full items-center justify-center">
-				<EditSellerInfo {existingData} />
+				<EditSellerInfo {existingData} on:save={() => changeView('listings')} />
 			</div>
 		{/if}
 	</main>

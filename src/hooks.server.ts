@@ -1,28 +1,73 @@
 // src/hooks.server.ts
-import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
-import type { Handle } from '@sveltejs/kit';
+import { SvelteKitAuth } from '@auth/sveltekit';
+import Google from '@auth/sveltekit/providers/google';
+import { SupabaseAdapter } from '@auth/supabase-adapter';
+import { createClient } from '@supabase/supabase-js';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { getPb } from '$lib/pocketbase/pb.client';
+import {
+	GOOGLE_CLIENT_ID,
+	GOOGLE_CLIENT_SECRET,
+	SUPABASE_SERVICE_ROLE_KEY,
+	AUTH_SECRET
+} from '$env/static/private';
+import type { Handle } from '@sveltejs/kit';
+import { sequence } from '@sveltejs/kit/hooks';
 
-export const handle: Handle = async ({ event, resolve }) => {
-	//console.log('hooks running', PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY ? 'KEY OK' : 'NO KEY');
+// 1. Setup Auth.js with Supabase adapter
+const { handle: authHandle } = SvelteKitAuth({
+	providers: [
+		Google({
+			clientId: GOOGLE_CLIENT_ID,
+			clientSecret: GOOGLE_CLIENT_SECRET
+		})
+	],
+	adapter: SupabaseAdapter({
+		url: PUBLIC_SUPABASE_URL,
+		secret: SUPABASE_SERVICE_ROLE_KEY
+	}),
+	session: {
+		strategy: 'database'
+	},
+	secret: AUTH_SECRET
+});
 
-	event.locals.supabase = createSupabaseServerClient({
-		supabaseUrl: PUBLIC_SUPABASE_URL,
-		supabaseKey: PUBLIC_SUPABASE_ANON_KEY,
-		event
-	});
+// 2. Custom handle to store session in locals
+const sessionHandle: Handle = async ({ event, resolve }) => {
+	// Get the session from Auth.js
+	const session = await event.locals.auth();
 
-	const pb = getPb();
+	// Store it in locals for easy access
+	event.locals.session = session;
 
-	// attach pb to locals
-	event.locals.pb = pb ?? null;
+	if (session) {
+		event.locals.user = session.user;
+	}
+	// Setup Supabase client
+	event.locals.supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-	const {
-		data: { user }
-	} = await event.locals.supabase.auth.getUser();
+	// Get user role if authenticated
+	if (session?.user) {
+		const { data: userData, error } = await event.locals.supabase
+			.from('users')
+			.select('*')
+			.eq('email', session.user.email)
+			.single();
 
-	event.locals.user = user ?? null;
+		event.locals.userId = userData?.id ?? null;
+
+		const { data: roleData, error: roleError } = await event.locals.supabase
+			.from('roles')
+			.select('role')
+			.eq('userId', event.locals.userId)
+			.single();
+
+		event.locals.userRole = roleData?.role ?? null;
+	} else {
+		event.locals.userRole = 'anon';
+	}
 
 	return resolve(event);
 };
+
+// 3. Combine both handles using sequence
+export const handle = sequence(authHandle, sessionHandle);

@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { sendSingleEmail } from '$lib/utils/email';
+import { logEvent } from '$lib/server/utils/logger';
 
 type Order = {
 	uuid: string;
@@ -163,11 +164,27 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		if (error) {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Failed to decline order ${orderId}: ${error.message}`
+			);
 			return json({ error: error.message }, { status: 500 });
 		}
 
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Order declined: Order ${orderId} for product "${order.deal_title || 'Unknown'}"`
+		);
+
 		return json({ success: true, order: data });
 	} catch (err) {
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Error declining order: ${err instanceof Error ? err.message : 'Unknown error'}`
+		);
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };
