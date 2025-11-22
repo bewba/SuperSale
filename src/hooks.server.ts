@@ -12,6 +12,7 @@ import {
 } from '$env/static/private';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { logEvent } from '$lib/server/utils/logger';
 
 // 1. Setup Auth.js with Supabase adapter
 const { handle: authHandle } = SvelteKitAuth({
@@ -28,19 +29,48 @@ const { handle: authHandle } = SvelteKitAuth({
 	session: {
 		strategy: 'database'
 	},
-	secret: AUTH_SECRET
+	secret: AUTH_SECRET,
+
+	callbacks: {
+		async signIn({ user, account }) {
+			// Supabase client (we need anon key to write logs)
+			const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+
+			if (!user?.email) {
+				// ❌ Log failed login
+				await logEvent(supabase, null, 'Failed login attempt (no user email)', false, 1);
+				return false;
+			}
+
+			// At this point Auth.js says login is valid → log success
+			await logEvent(supabase, user.id ?? null, `Successful login: ${user.email}`, true, 1);
+
+			return true; // let login continue
+		}
+	}
 });
 
 // 2. Custom handle to store session in locals
 const sessionHandle: Handle = async ({ event, resolve }) => {
 	// Get the session from Auth.js
 	const session = await event.locals.auth();
+	const isNewSession = !event.cookies.get('session_seen');
 
 	// Store it in locals for easy access
 	event.locals.session = session;
 
-	if (session) {
+	if (session?.user) {
 		event.locals.user = session.user;
+
+		if (isNewSession) {
+			console.log('🎉 New login session detected:', session.user.email);
+
+			event.cookies.set('session_seen', 'true', {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax'
+			});
+		}
 	}
 	// Setup Supabase client
 	event.locals.supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
