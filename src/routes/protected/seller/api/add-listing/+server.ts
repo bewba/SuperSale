@@ -159,11 +159,7 @@ export const POST: RequestHandler = async (event) => {
 		}
 
 		const insertedData = (data ?? []) as any[];
-		await logEvent(
-			supabase,
-			user,
-			`Product listing added: "${productName}" (ID: ${insertedData?.[0]?.id || 'unknown'})`
-		);
+		await logEvent(supabase, user, `Product listing added: "${productName}" `);
 
 		return json({ success: true, deal: insertedData }, { status: 200 });
 	} catch (err) {
