@@ -1,14 +1,25 @@
 import type { RequestHandler } from './$types';
+import { validateTypes } from '$lib/server/utils/typeValidator';
+import { logEvent } from '$lib/server/utils/logger';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	const user = locals.user;
 	if (!user) return new Response(JSON.stringify({ error: 'Not logged in' }), { status: 401 });
 
-	const { productId, quantity } = await request.json();
-	console.log(productId, quantity);
+	const body = await request.json();
+	const { productId, quantity } = body;
 
-	if (!productId || !quantity)
-		return new Response(JSON.stringify({ error: 'Missing data' }), { status: 400 });
+	// Type validation
+	const typeValidation = await validateTypes(locals.supabase, user.id, [
+		{ value: productId, expectedType: 'string', fieldName: 'productId', required: true },
+		{ value: quantity, expectedType: 'number', fieldName: 'quantity', required: true }
+	]);
+
+	if (!typeValidation.valid) {
+		return new Response(JSON.stringify({ error: 'Invalid input types', details: typeValidation.errors }), { status: 400 });
+	}
+
+	console.log(productId, quantity);
 
 	const { data, error } = await locals.supabase
 		.from('cart')

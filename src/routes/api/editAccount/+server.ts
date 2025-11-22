@@ -2,12 +2,28 @@ import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { checkUserRole } from '$lib/server/auth/roleCheck';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const PUT: RequestHandler = async (event) => {
 	try {
 		const { request, locals } = event;
 
-		const { storeName, address, pickup, delivery, uploadedUrl, viberLink } = await request.json();
+		const body = await request.json();
+		const { storeName, address, pickup, delivery, uploadedUrl, viberLink } = body;
+
+		// Type validation
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: storeName, expectedType: 'string', fieldName: 'storeName', required: true },
+			{ value: address, expectedType: 'string', fieldName: 'address', required: true },
+			{ value: pickup, expectedType: 'boolean', fieldName: 'pickup', required: true },
+			{ value: delivery, expectedType: 'boolean', fieldName: 'delivery', required: true },
+			{ value: uploadedUrl, expectedType: 'string', fieldName: 'uploadedUrl', required: false },
+			{ value: viberLink, expectedType: 'string', fieldName: 'viberLink', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
+		}
 
 		if (!storeName || !storeName.trim()) {
 			await logEvent(

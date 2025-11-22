@@ -2,6 +2,7 @@ import { checkUserRole } from '$lib/server/auth/roleCheck';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json, redirect } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async (event) => {
 	try {
@@ -36,6 +37,33 @@ export const POST: RequestHandler = async (event) => {
 		}
 
 		const supabase = locals.supabase;
+
+		// Type validation
+		const typeValidation = await validateTypes(supabase, user, [
+			{ value: productName, expectedType: 'string', fieldName: 'productName', required: true },
+			{ value: originalPrice, expectedType: 'number', fieldName: 'originalPrice', required: false },
+			{ value: discountPrice, expectedType: 'number', fieldName: 'discountPrice', required: false },
+			{
+				value: discountPercent,
+				expectedType: 'number',
+				fieldName: 'discountPercent',
+				required: false
+			},
+			{ value: description, expectedType: 'string', fieldName: 'description', required: false },
+			{ value: unit, expectedType: 'string', fieldName: 'unit', required: false },
+			{ value: quantity, expectedType: 'number', fieldName: 'quantity', required: false },
+			{ value: category, expectedType: 'string', fieldName: 'category', required: false },
+			{ value: contactInfo, expectedType: 'string', fieldName: 'contactInfo', required: false },
+			{ value: image_list, expectedType: 'array', fieldName: 'image_list', required: false },
+			{ value: expires_at, expectedType: 'string', fieldName: 'expires_at', required: true }
+		]);
+
+		if (!typeValidation.valid) {
+			return json(
+				{ success: false, error: 'Invalid input types', details: typeValidation.errors },
+				{ status: 400 }
+			);
+		}
 
 		// PH time
 		const nowPH = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
@@ -125,18 +153,19 @@ export const POST: RequestHandler = async (event) => {
 			return json({ success: false, error }, { status: 500 });
 		}
 
+		const insertedData = (data ?? []) as any[];
 		await logEvent(
 			supabase,
 			user,
-			`Product listing added: "${productName}" (ID: ${data?.[0]?.id || 'unknown'})`
+			`Product listing added: "${productName}" (ID: ${insertedData?.[0]?.id || 'unknown'})`
 		);
 
-		return json({ success: true, deal: data }, { status: 200 });
+		return json({ success: true, deal: insertedData }, { status: 200 });
 	} catch (err) {
 		console.error('Server error:', err);
 		await logEvent(
-			locals.supabase,
-			locals.userId,
+			event.locals.supabase,
+			event.locals.userId,
 			`Error adding product listing: ${err instanceof Error ? err.message : 'Unknown error'}`
 		);
 		return json({ success: false, error: 'Server error' }, { status: 500 });

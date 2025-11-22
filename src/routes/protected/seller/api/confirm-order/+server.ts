@@ -2,6 +2,7 @@ import { sendSingleEmail } from '$lib/utils/email';
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 type Order = {
 	uuid: string;
@@ -17,10 +18,33 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		const body = await request.json();
 
-		console.log(body);
+		// Type validation
+		if (!body.order || typeof body.order !== 'object') {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Type validation failure: Order object is missing or invalid (type: ${typeof body.order})`
+			);
+			return json({ error: 'Invalid order data' }, { status: 400 });
+		}
 
-		const orderId = body.order.uuid;
 		const order = body.order;
+		const orderId = order.uuid;
+
+		// Validate order fields
+		const typeValidation = await validateTypes(locals.supabase, locals.userId, [
+			{ value: orderId, expectedType: 'string', fieldName: 'order.uuid', required: true },
+			{ value: order.contactNumber, expectedType: 'string', fieldName: 'order.contactNumber', required: false },
+			{ value: order.customerName, expectedType: 'string', fieldName: 'order.customerName', required: false },
+			{ value: order.email, expectedType: 'string', fieldName: 'order.email', required: false },
+			{ value: order.quantity, expectedType: 'number', fieldName: 'order.quantity', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
+		}
+
+		console.log(body);
 
 		const date = new Date(order.created_at);
 

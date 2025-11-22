@@ -2,6 +2,7 @@ import { checkUserRole } from '$lib/server/auth/roleCheck';
 import type { RequestHandler } from './$types';
 import { json, redirect } from '@sveltejs/kit';
 import { logEvent } from '$lib/server/utils/logger';
+import { validateTypes } from '$lib/server/utils/typeValidator';
 
 export const POST: RequestHandler = async (event) => {
 	try {
@@ -21,10 +22,10 @@ export const POST: RequestHandler = async (event) => {
 		// other fields
 		const id = formData.get('id') as string;
 		const title = formData.get('productName') as string;
-		const quantity = Number(formData.get('quantity'));
-		const original_price = Number(formData.get('originalPrice'));
-		const discount_price = Number(formData.get('discountPrice'));
-		const discount_percent = Number(formData.get('discountPercent'));
+		const quantityStr = formData.get('quantity');
+		const original_priceStr = formData.get('originalPrice');
+		const discount_priceStr = formData.get('discountPrice');
+		const discount_percentStr = formData.get('discountPercent');
 		const reason = formData.get('description') as string;
 		const reason_category = formData.get('category') as string;
 		const contact_information = formData.get('contactInfo') as string;
@@ -33,13 +34,44 @@ export const POST: RequestHandler = async (event) => {
 		// EXPIRES NOT VALIDATED (as requested)
 		const expires_at = formData.get('expires_at') as string | null;
 
-		const existingImages = JSON.parse((formData.get('existingImages') as string) || '[]');
-		const removedImages = JSON.parse((formData.get('removedImages') as string) || '[]');
+		const existingImagesStr = formData.get('existingImages') as string;
+		const removedImagesStr = formData.get('removedImages') as string;
 
 		const owner_id = locals.userId;
 		if (!owner_id) {
 			return json({ error: 'Not authenticated' }, { status: 401 });
 		}
+
+		// Type validation for form data fields
+		const typeValidation = await validateTypes(locals.supabase, owner_id, [
+			{ value: id, expectedType: 'string', fieldName: 'id', required: true },
+			{ value: title, expectedType: 'string', fieldName: 'productName', required: true },
+			{ value: quantityStr, expectedType: 'string', fieldName: 'quantity', required: true },
+			{ value: original_priceStr, expectedType: 'string', fieldName: 'originalPrice', required: false },
+			{ value: discount_priceStr, expectedType: 'string', fieldName: 'discountPrice', required: false },
+			{ value: discount_percentStr, expectedType: 'string', fieldName: 'discountPercent', required: false },
+			{ value: reason, expectedType: 'string', fieldName: 'description', required: false },
+			{ value: reason_category, expectedType: 'string', fieldName: 'category', required: false },
+			{ value: contact_information, expectedType: 'string', fieldName: 'contactInfo', required: false },
+			{ value: unit, expectedType: 'string', fieldName: 'unit', required: false },
+			{ value: expires_at, expectedType: 'string', fieldName: 'expires_at', required: false },
+			{ value: existingImagesStr, expectedType: 'string', fieldName: 'existingImages', required: false },
+			{ value: removedImagesStr, expectedType: 'string', fieldName: 'removedImages', required: false }
+		]);
+
+		if (!typeValidation.valid) {
+			return json({ error: 'Invalid input types', details: typeValidation.errors }, { status: 400 });
+		}
+
+		// Parse numeric values
+		const quantity = Number(quantityStr);
+		const original_price = Number(original_priceStr);
+		const discount_price = Number(discount_priceStr);
+		const discount_percent = Number(discount_percentStr);
+
+		// Parse JSON arrays
+		const existingImages = JSON.parse(existingImagesStr || '[]');
+		const removedImages = JSON.parse(removedImagesStr || '[]');
 
 		// ---------- BASIC FIELD VALIDATION (same as previous file) ----------
 
