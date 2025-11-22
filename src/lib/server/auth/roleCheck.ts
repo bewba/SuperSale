@@ -34,6 +34,9 @@ export async function checkUserRole(event: RequestEvent, role: string[]) {
 		return 5; // banned user
 	}
 
+	console.log('locals.userRole = ', locals.userRole);
+	console.log(role);
+
 	if (role.includes(locals.userRole)) {
 		console.log('0');
 		return 0; // role matches
