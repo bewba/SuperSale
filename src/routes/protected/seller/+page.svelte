@@ -233,6 +233,8 @@
 				})
 			});
 
+			console.log(res.body);
+
 			if (!res.ok) throw new Error(`Failed to add listing: ${res.status}`);
 
 			const data = await res.json();

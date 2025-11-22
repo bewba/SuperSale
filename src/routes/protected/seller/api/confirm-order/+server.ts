@@ -1,6 +1,7 @@
 import { sendSingleEmail } from '$lib/utils/email';
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
+import { logEvent } from '$lib/server/utils/logger';
 
 type Order = {
 	uuid: string;
@@ -228,11 +229,27 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		}
 
 		if (error) {
+			await logEvent(
+				locals.supabase,
+				locals.userId,
+				`Failed to confirm order ${orderId}: ${error.message}`
+			);
 			return json({ error: error.message }, { status: 500 });
 		}
 
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Order confirmed: Order ${orderId} for product "${order.deal_title || 'Unknown'}"`
+		);
+
 		return json({ success: true, order: data });
 	} catch (err) {
+		await logEvent(
+			locals.supabase,
+			locals.userId,
+			`Error confirming order: ${err instanceof Error ? err.message : 'Unknown error'}`
+		);
 		return json({ error: 'Internal server error' }, { status: 500 });
 	}
 };

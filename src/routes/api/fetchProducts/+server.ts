@@ -11,9 +11,9 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	// fetch a batch of products
 	const { data, error, count } = await supabase
-		.from('products')
-		.select('*', { count: 'exact' }) // also get total count
-		.order('created_at', { ascending: false }) // newest first
+		.from('all_products_including_expired')
+		.select('*')
+		.order('created_at', { ascending: false })
 		.range(offset, offset + limit - 1);
 
 	if (error) {

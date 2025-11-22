@@ -25,7 +25,7 @@ export const load: PageServerLoad = async (event) => {
 
 	// 3 = Not authorized
 	if (isAdmin === 3) {
-		throw redirect(302, '/?toast=unauthorized');
+		throw redirect(302, '/unauthorized');
 	}
 
 	// fallback (optional)

@@ -2,9 +2,8 @@
 import { json, redirect, type RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({ locals, request, url }) => {
-	// ✅ protect: only admin
 	if (locals.userRole !== 'admin' && locals.userRole !== 'moderator') {
-		throw redirect(302, '/');
+		throw redirect(302, '/unauthorized');
 	}
 
 	const supabase = locals.supabase;

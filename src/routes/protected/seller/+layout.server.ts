@@ -26,7 +26,7 @@ export const load: LayoutServerLoad = async (event) => {
 
 	// 3 = Not authorized
 	if (isSeller === 3) {
-		throw redirect(302, '/?toast=unauthorized');
+		throw redirect(302, '/unauthorized');
 	}
 
 	// fallback (optional)

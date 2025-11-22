@@ -9,10 +9,8 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 
 	// fetch a batch of products (active + not expired)
 	const { data, error, count } = await supabase
-		.from('products')
-		.select('*', { count: 'exact' })
-		.eq('is_active', true)
-		.gt('expires_at', new Date().toISOString())
+		.from('active_products')
+		.select('*')
 		.order('created_at', { ascending: false })
 		.range(offset, offset + limit - 1);
 

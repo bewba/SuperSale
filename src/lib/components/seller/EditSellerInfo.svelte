@@ -81,7 +81,46 @@
 	}
 
 	async function handleSave() {
-		if (!verifyStoreName(storeName) || !verifyViber()) return;
+		if (!verifyStoreName(storeName) || !verifyViber()) {
+			toastError(`You must have a store name or a valid viber number!`, {
+				title: 'Error Updating Store Information',
+				duration: 2000,
+				position: 'top-right'
+			});
+			return;
+		}
+		// Store name length check
+		if (storeName.trim().length > 50) {
+			errorMessage = 'Store name cannot exceed 50 characters';
+			toastError(`Store name cannot exceed 50 characters`, {
+				title: 'Error Updating Store Information',
+				duration: 2000,
+				position: 'top-right'
+			});
+			return;
+			return;
+		}
+
+		// Address length check
+		if (address.trim().length > 200) {
+			toastError('Address cannot exceed 200 characters', {
+				title: 'Error Updating Store Information',
+				duration: 2000,
+				position: 'top-right'
+			});
+			return;
+		}
+
+		// Contact number must be exactly 10 digits
+		if (contactNumber.trim().length !== 10) {
+			errorMessageViber = 'Contact number must be exactly 10 digits';
+			toastError('Contact number must be exactly 10 digits', {
+				title: 'Error Updating Store Information',
+				duration: 2000,
+				position: 'top-right'
+			});
+			return;
+		}
 
 		loading = true;
 		try {
@@ -227,6 +266,7 @@
 								<input
 									type="text"
 									bind:value={storeName}
+									maxlength="50"
 									placeholder="Enter your store name"
 									class="w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-gray-900 focus:outline-none lg:px-5 lg:py-4 lg:text-lg"
 								/>
@@ -246,6 +286,7 @@
 									<span class="flex items-center px-4 text-gray-500 lg:px-5 lg:text-lg">+63</span>
 									<input
 										type="text"
+										maxlength="10"
 										bind:value={contactNumber}
 										placeholder="9XXXXXXXXX"
 										class="flex-1 rounded-r-xl px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none lg:px-5 lg:py-4 lg:text-lg"
@@ -265,6 +306,7 @@
 							<textarea
 								bind:value={address}
 								placeholder="Enter your store address"
+								maxlength="200"
 								rows="3"
 								class="lg:rows-4 w-full resize-none rounded-xl border-2 border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 transition-colors focus:border-gray-900 focus:outline-none lg:px-5 lg:py-4 lg:text-lg"
 							></textarea>

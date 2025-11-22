@@ -1,5 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
+import { logEvent } from '$lib/server/utils/logger';
 
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
@@ -31,6 +32,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (uploadError) {
 			console.error('Supabase storage upload error:', uploadError);
+			await logEvent(
+				supabase,
+				user,
+				`Failed to upload product image for "${title}": ${uploadError.message}`
+			);
 			return json({ success: false, error: uploadError.message }, { status: 500 });
 		}
 
@@ -57,12 +63,28 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (error) {
 			console.error('Supabase insert error:', error);
+			await logEvent(
+				supabase,
+				user,
+				`Failed to create product "${title}" (admin): ${error.message}`
+			);
 			return json({ success: false, error }, { status: 500 });
 		}
+
+		await logEvent(
+			supabase,
+			user,
+			`Product created by admin: "${title}" (ID: ${data?.[0]?.id || 'unknown'})`
+		);
 
 		return json({ success: true, deal: data }, { status: 200 });
 	} catch (err) {
 		console.error('Server error:', err);
+		await logEvent(
+			locals.supabase,
+			locals.user?.id || null,
+			`Error creating product (admin): ${err instanceof Error ? err.message : 'Unknown error'}`
+		);
 		return json({ success: false, error: 'Server error' }, { status: 500 });
 	}
 };
