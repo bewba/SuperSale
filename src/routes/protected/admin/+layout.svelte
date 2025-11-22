@@ -1,10 +1,14 @@
 <!-- src/routes/admin/+layout.svelte -->
-<script>
+<script lang="ts">
 	import Sidebar from '$lib/components/Sidebar.svelte';
+
+	export let data;
+
+	const role = data.role;
 </script>
 
 <div class="admin-layout">
-	<Sidebar />
+	<Sidebar {role} />
 
 	<main class="main-content">
 		<slot />
