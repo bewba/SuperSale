@@ -13,6 +13,7 @@ import {
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { logEvent } from '$lib/server/utils/logger';
+import { toastInfo } from '$lib/stores/toast';
 
 // 1. Setup Auth.js with Supabase adapter
 const { handle: authHandle } = SvelteKitAuth({
@@ -30,10 +31,8 @@ const { handle: authHandle } = SvelteKitAuth({
 		strategy: 'database'
 	},
 	secret: AUTH_SECRET,
-
 	callbacks: {
-		async signIn({ user, account }) {
-			// Supabase client (we need anon key to write logs)
+		async signIn({ user }) {
 			const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
 			if (!user?.email) {
@@ -42,42 +41,28 @@ const { handle: authHandle } = SvelteKitAuth({
 				return false;
 			}
 
-			// At this point Auth.js says login is valid → log success
+			// ✅ Log successful login
 			await logEvent(supabase, user.id ?? null, `Successful login: ${user.email}`, true, 1);
 
-			return true; // let login continue
+			return true; // continue login
 		}
 	}
 });
 
-// 2. Custom handle to store session in locals
+// 2. Custom handle to store session in locals and detect fresh login
 const sessionHandle: Handle = async ({ event, resolve }) => {
-	// Get the session from Auth.js
 	const session = await event.locals.auth();
-	const isNewSession = !event.cookies.get('session_seen');
 
-	// Store it in locals for easy access
+	// Store session and user in locals
 	event.locals.session = session;
+	if (session?.user) event.locals.user = session.user;
 
-	if (session?.user) {
-		event.locals.user = session.user;
-
-		if (isNewSession) {
-			console.log('🎉 New login session detected:', session.user.email);
-
-			event.cookies.set('session_seen', 'true', {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax'
-			});
-		}
-	}
-	// Setup Supabase client
+	// Setup Supabase client in locals
 	event.locals.supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-	// Get user role if authenticated
+	// Get user ID and role if authenticated
 	if (session?.user) {
-		const { data: userData, error } = await event.locals.supabase
+		const { data: userData } = await event.locals.supabase
 			.from('users')
 			.select('*')
 			.eq('email', session.user.email)
@@ -85,7 +70,7 @@ const sessionHandle: Handle = async ({ event, resolve }) => {
 
 		event.locals.userId = userData?.id ?? null;
 
-		const { data: roleData, error: roleError } = await event.locals.supabase
+		const { data: roleData } = await event.locals.supabase
 			.from('roles')
 			.select('role')
 			.eq('userId', event.locals.userId)
