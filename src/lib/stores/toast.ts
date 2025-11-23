@@ -32,7 +32,7 @@ export const addToast = (
 	toast: { message: string } & Partial<Omit<Toast, 'id' | 'message'>>
 ): number => {
 	const id = toastId++;
-	console.log('Toast input:', toast);
+	//console.log('Toast input:', toast);
 	const newToast: Toast = {
 		...toast, // user-supplied options first
 		id,

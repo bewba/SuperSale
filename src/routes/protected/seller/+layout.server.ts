@@ -24,9 +24,13 @@ export const load: LayoutServerLoad = async (event) => {
 		throw redirect(302, '/createAccount');
 	}
 
-	// 3 = Not authorized
-	if (isSeller === 3) {
+	//3 = Not authorized
+	if (isSeller === 5) {
 		throw redirect(302, '/unauthorized');
+	}
+
+	if (isSeller == 3) {
+		redirect(302, '/createAccount');
 	}
 
 	// fallback (optional)
